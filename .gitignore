@@ -1,6 +1,7 @@
 node_modules/
 dist/
 release/
+release-next/
 output/
 *.log
 .test-data/

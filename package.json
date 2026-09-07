@@ -1,8 +1,8 @@
 {
-  "name": "orbit-games",
-  "productName": "Orbit Games",
-  "version": "1.0.0",
-  "description": "Tu biblioteca de juegos para Windows",
+  "name": "orbit-games-next",
+  "productName": "Orbit Games Next",
+  "version": "0.2.0-alpha.1",
+  "description": "Orbit Games Next: biblioteca independiente en desarrollo",
   "author": "Pipe",
   "private": true,
   "main": "electron/main.cjs",
@@ -12,13 +12,14 @@
     "start": "electron .",
     "test": "node --test tests/*.test.cjs",
     "package": "npm run build && electron-builder --win nsis --x64",
-    "package:dir": "npm run build && electron-builder --win --dir --x64"
+    "package:dir": "npm run build && electron-builder --win --dir --x64",
+    "test:desktop": "node scripts/qa-desktop.cjs"
   },
   "build": {
-    "appId": "com.pipe.orbitgames",
+    "appId": "com.pipe.orbitgames.next",
     "asar": true,
     "directories": {
-      "output": "release"
+      "output": "release-next"
     },
     "files": [
       "dist/**/*",
@@ -41,9 +42,11 @@
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "shortcutName": "Orbit Games",
-      "runAfterFinish": false
+      "createDesktopShortcut": false,
+      "shortcutName": "Orbit Games Next",
+      "runAfterFinish": false,
+      "createStartMenuShortcut": false,
+      "guid": "f173179c-1045-43b0-b075-12f50e6620a1"
     }
   },
   "dependencies": {

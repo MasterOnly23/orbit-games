@@ -1,7 +1,13 @@
 import { Star, Check, HelpCircle } from "lucide-react";
 import GameArtwork from "./GameArtwork";
 import { nameOf, statusOf, statusLabel } from "./useLibrary";
-export default function GameCard({ game, selected, onSelect, onFavorite }) {
+export default function GameCard({
+  game,
+  selected,
+  onSelect,
+  onFavorite,
+  online,
+}) {
   const status = statusOf(game);
   return (
     <article className={`game-card ${selected ? "selected" : ""}`}>
@@ -12,7 +18,7 @@ export default function GameCard({ game, selected, onSelect, onFavorite }) {
         aria-pressed={selected}
       >
         <div className="card-image">
-          <GameArtwork game={game} />
+          <GameArtwork game={game} online={online} />
           <div className="card-shade" />
           <span className={`card-status ${status}`} title={statusLabel[status]}>
             {status === "installed" ? (

@@ -1,95 +1,76 @@
-# Orbit Games
+# Orbit Games Next
 
-Aplicación de escritorio para Windows 10/11 que reúne juegos y accesos directos en una biblioteca oscura. Se ejecuta localmente, abre los lanzadores existentes y no necesita iniciar sesión en cuentas de juego.
+Primera versión de desarrollo para configurar Orbit en otros equipos Windows. Esta rama conserva una identidad independiente de **Orbit Games 1.0.0**.
 
-## Usar la aplicación
+## Dos aplicaciones independientes
 
-Abre **Orbit Games** desde el acceso directo del escritorio. El instalador está en `release/Orbit Games Setup 1.0.0.exe`. La aplicación también se puede ejecutar directamente desde `release/win-unpacked/Orbit Games.exe`, conservando toda esa carpeta.
-
-- **Seleccionar un juego** cambia la imagen principal y muestra su ficha. **Jugar ahora** inicia el juego mediante Windows o su lanzador.
-- **Añadir juego** acepta `.exe`, `.lnk`, `.url` y enlaces compatibles de lanzadores.
-- Agrega accesos a **Escritorio → Games** para detectarlos automáticamente. En Ajustes puedes añadir más carpetas. Se incluyen las subcarpetas inmediatas; no se recorren todos los archivos internos de los juegos.
-- **Editar juego** permite cambiar nombre, acceso, notas y estado, elegir una ficha de Steam o usar una imagen de tu PC.
-- **Ajustes → Abrir al iniciar Windows** activa o desactiva el inicio de Orbit al iniciar sesión.
-- **Seguir en la bandeja al cerrar** mantiene activa la detección. Para cerrar completamente, usa **Salir** en el icono junto al reloj.
-- La estrella guarda favoritos; **Recientes** muestra los juegos iniciados desde Orbit. **Sorpréndeme** selecciona uno instalado sin ejecutarlo.
-- **Ctrl + K** enfoca la búsqueda. Los botones, filtros y formularios se pueden usar con teclado.
-
-## Qué detecta
-
-| Origen | Evidencia de instalación | Inicio |
+| Elemento | Orbit actual | Orbit Next |
 |---|---|---|
-| Steam | Bibliotecas registradas, manifiestos ACF, estado de instalación y carpeta | Protocolo Steam con AppID |
-| Epic Games | Manifiestos locales y ejecutable | Protocolo de Epic con los identificadores del juego |
-| EA app | Registro de Windows y ejecutables; accesos de Games | Acceso original o ejecutable registrado |
-| Xbox / Microsoft Store | Paquetes del usuario, AppsFolder y MicrosoftGame.config | Identificador de aplicación de Windows |
-| Ubisoft | Accesos y registro de instalaciones disponible | Protocolo Ubisoft o acceso |
-| Riot | Accesos, metadatos locales de producto y ejecutable cuando está disponible | Acceso original con sus argumentos |
-| Otros / lanzador propio | Destino de accesos a ejecutables | Acceso original o ejecutable |
+| Rama | `main` | `feature/orbit-next-onboarding` |
+| Nombre | Orbit Games | Orbit Games Next |
+| Identificador | `com.pipe.orbitgames` | `com.pipe.orbitgames.next` |
+| Biblioteca y caché | `%APPDATA%\Orbit Games` | `%APPDATA%\Orbit Games Next` |
+| Salida de compilación | `release/` | `release-next/` |
+| Inicio de Windows | Configuración de Orbit | Entrada propia `OrbitGamesNext` |
 
-**Instalado** significa que hay evidencia local accesible. No garantiza que todos los archivos estén íntegros, ni sustituye la verificación de archivos, las actualizaciones, la suscripción o las credenciales que pueda exigir el lanzador. **No instalado** indica que falta la instalación identificable. **Sin verificar** conserva los casos ambiguos, fuentes desaparecidas, unidades no disponibles o lanzadores compartidos sin evidencia del juego. Puedes corregir el estado manualmente y el siguiente escaneo conserva esa elección.
+Next no importa ni modifica el perfil, las portadas o los favoritos de Orbit actual. Ambas aplicaciones pueden ejecutarse a la vez. El paquete de Next tiene un identificador de instalación independiente y no crea accesos directos automáticamente.
 
-Los juegos no instalados se conocen por los accesos de Games y por entradas conservadas en la biblioteca. Orbit no descarga todo el catálogo comprado en cada cuenta. Una descarga independiente sin acceso directo se agrega manualmente. No instala juegos automáticamente ni modifica sus carpetas o partidas.
+Las pruebas de escritorio usan subcarpetas nuevas de `%APPDATA%\Orbit Games Next\qa`. `ORBIT_DATA_DIR` solo admite rutas dentro del perfil de Next; se rechazan rutas externas y enlaces de directorio en ese perfil.
 
-## Imágenes y fichas
+## Primer incremento
 
-Las fichas públicas se consultan en Steam por AppID o coincidencia exacta del nombre. No se asignan resultados aproximados automáticamente. Desde **Editar** puedes elegir la ficha correcta sin cambiar la plataforma desde la que se ejecuta el juego. Algunas descripciones solo están disponibles en el idioma que publica el estudio.
+- Asistente inicial: elegir carpetas, buscar, revisar y guardar.
+- Detección local existente de plataformas, con resumen por plataforma y carpetas de instalación.
+- Carpetas de accesos `.lnk` y `.url`, incluyendo sus subcarpetas inmediatas.
+- Carpetas adicionales con ejecutables: búsqueda hasta tres niveles, 5.000 entradas y 200 candidatos por búsqueda. No se siguen enlaces de directorio. Los límites se comunican al usuario.
+- Se descartan nombres habituales de instaladores, desinstaladores y herramientas. Los candidatos adicionales requieren selección explícita; no se ejecutan durante la búsqueda.
+- Se conservan la configuración y los juegos elegidos después de reiniciar.
+- El asistente puede abrirse otra vez desde **Ajustes → Revisar carpetas y juegos**.
+- Las consultas de fichas en línea son opcionales.
 
-Las imágenes remotas necesitan conexión; las fichas ya consultadas y las imágenes que eliges desde tu PC se guardan localmente. Los juegos sin imagen usan una portada de respaldo. Las imágenes y marcas de juegos pertenecen a sus respectivos titulares.
+No hay conexión con cuentas todavía. La biblioteca completa de compras, los juegos accesibles por suscripción y la unificación de varias licencias de un mismo juego son trabajo posterior. Los ejecutables arbitrarios se identifican por nombre de archivo y pueden requerir corrección manual. Los nuevos ejecutables en carpetas adicionales se revisan reabriendo el asistente; no se importan automáticamente.
 
-## Datos locales y respaldo
+## Ejecutar y compilar
 
-Se guardan en `%APPDATA%\Orbit Games`:
-
-- `library.json`: biblioteca, favoritos, notas, rutas y ajustes.
-- `library.json.bak`: última copia anterior a la escritura actual.
-- `artwork/`: imágenes personales.
-
-Las escrituras son atómicas y la app intenta recuperar la copia anterior si el archivo principal se daña. **Exportar preferencias** crea un JSON con favoritos, nombres, ocultos y notas; **Restaurar** lo aplica a los juegos ya detectados. Para un respaldo completo, cierra Orbit y copia la carpeta `%APPDATA%\Orbit Games`. No incluye los archivos ni las partidas de los juegos.
-
-## Desarrollo
-
-Requiere Windows y Node.js 24 LTS o compatible con la versión fijada de Vite. PowerShell:
+Requiere Windows y Node.js 24 compatible con las dependencias fijadas.
 
 ```powershell
-git clone https://github.com/MasterOnly23/orbit-games.git
-cd orbit-games
+git clone --branch feature/orbit-next-onboarding https://github.com/MasterOnly23/orbit-games.git orbit-games-next
+cd orbit-games-next
 npm ci
 npm run dev
 ```
 
-Compilación y pruebas:
+Para generar el ejecutable independiente sin instalarlo:
+
+```powershell
+npm run package:dir
+& '.\release-next\win-unpacked\Orbit Games Next.exe'
+```
+
+Conserva toda la carpeta `win-unpacked`, no solo el `.exe`. `npm run package` genera el instalador NSIS independiente de Next; no lo instala. Es una versión alfa sin firma comercial ni actualizaciones automáticas.
+
+## Verificación
 
 ```powershell
 npm test
-npm run build
-npm run package
+npm run package:dir
+npm run test:desktop
 ```
 
-`npm run start` abre la última interfaz compilada. `npm run dev` usa Vite y Electron. La versión de Electron se distribuye con la aplicación: el usuario final no necesita Node.js.
+Las pruebas de dominio cubren la biblioteca original, el aislamiento de perfiles, la selección de carpetas, los límites de búsqueda y la confirmación antes de persistir. La prueba de escritorio utiliza el ejecutable de Next y un perfil vacío, recorre el asistente, elige un archivo ficticio que nunca se ejecuta, reinicia y comprueba la persistencia. No depende de que exista un juego comercial concreto ni una cantidad determinada de juegos.
 
-## Arquitectura y comprobación
+`output/` contiene los informes y capturas locales y queda excluido de Git. `VERIFICACION.md` describe la comprobación histórica de Orbit 1.0.0, no certifica Next. El roadmap general sigue en `ROADMAP.md`.
 
-- `electron/main.cjs`: ventana, eventos, detección programada y ciclo de vida.
-- `electron/ipc.cjs`: contrato de operaciones de la app, validación y diálogos nativos.
-- `electron/library/`: detección, combinación de fuentes, persistencia y fichas públicas.
-- `electron/platform/`: consulta acotada de Windows y lanzamiento.
-- `electron/preload.cjs`: API específica por operación, sin exponer Node.js al renderizador.
-- `src/features/library/` y `src/features/settings/`: interfaz y flujos.
+Comprobación del 7 de septiembre de 2026: 14 pruebas aprobadas, compilación y paquete independiente generados. El recorrido de escritorio pasó tanto desde el código como desde el ejecutable empaquetado, incluyendo perfil vacío, selección de ejecutable, portada local, reinicio, reapertura del asistente y ausencia de solicitudes remotas con las fichas desactivadas. Se revisó la interfaz a 1480 y 1000 píxeles de ancho. Esto valida este incremento en el equipo de desarrollo; faltan la beta en otros equipos, la instalación NSIS y los demás criterios del MVP 1.
 
-Se utiliza aislamiento de contexto, sandbox, CSP, validación del emisor de IPC, protocolos de lanzamiento admitidos y `shell: false` cuando se crea un proceso. Las imágenes locales se sirven por un protocolo limitado a los identificadores de la biblioteca. Referencias: [seguridad de Electron](https://www.electronjs.org/docs/latest/tutorial/security), [inicio con Windows](https://www.electronjs.org/docs/latest/api/app#appsetloginitemsettingssettings-macos-windows), [automatización de Electron con Playwright](https://playwright.dev/docs/api/class-electron).
+## Estructura
 
-`tests/library.test.cjs` verifica combinación de fuentes, conservación de preferencias, protocolos, destinos ausentes y recuperación del respaldo. `scripts/qa-desktop.cjs` abre Electron, usa un perfil de prueba separado, verifica la interfaz y ejecuta un pequeño programa propio que deja constancia de su ejecución. Los resultados y capturas quedan en `output/playwright/`. El script comprueba temporalmente el ajuste de inicio de Windows y restaura el valor inicial.
+- `electron/runtime.cjs`: identidad y límites del perfil de Next.
+- `electron/onboarding/`: descubrimiento de carpetas, vista previa y confirmación de la configuración.
+- `src/features/onboarding/`: asistente inicial.
+- `electron/library/`: inventario, combinación de fuentes y persistencia.
+- `electron/platform/`: consultas de Windows y lanzamiento de juegos.
+- `electron/ipc.cjs` y `electron/preload.cjs`: operaciones de biblioteca y puente aislado.
 
-La comprobación de escritorio depende del inventario del equipo original: espera más de 90 juegos y una entrada de Cyberpunk 2077 en `Escritorio\Games`. Todavía no es una prueba portátil para cualquier equipo. Los scripts `inspect-app.cjs` y `final-preview.cjs` también son herramientas de comprobación local; sus resultados no se incluyen en el repositorio.
-
-Para ejecutar la comprobación de escritorio en un equipo con ese inventario:
-
-```powershell
-npm run build
-New-Item -ItemType Directory -Path output -Force
-& 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe' /nologo /target:winexe /out:output\launch-fixture.exe scripts\launch-fixture.cs
-node scripts/qa-desktop.cjs
-```
-
-El instalador local no tiene certificado de firma comercial. Windows puede mostrar el editor como desconocido. No hay actualizaciones automáticas; para actualizar esta versión se vuelve a compilar e instalar.
+No se distribuyen bibliotecas personales, credenciales, portadas descargadas, capturas ni instaladores en Git. Las marcas y contenidos de terceros pertenecen a sus respectivos titulares.

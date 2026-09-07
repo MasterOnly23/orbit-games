@@ -2,7 +2,7 @@
 
 Fecha: 6 de septiembre de 2026.
 
-Estado: planificación; no se han iniciado los MVP pendientes.
+Estado: MVP 1 iniciado en Orbit Games Next; Orbit Games 1.0.0 se conserva en main.
 
 Base: aplicación local existente, instalador 1.0.0 y verificación en el equipo de desarrollo.
 
@@ -36,7 +36,7 @@ Esta tabla describe la evidencia disponible al crear el roadmap; no equivale a c
 | Etapa | Entrega | Depende de | Estado |
 |---|---|---|---|
 | Preparación | Alcance, contenido autorizado y decisión técnica inicial de distribución | Base actual | Pendiente |
-| MVP 1 | Primera experiencia autónoma | Preparación | Pendiente |
+| MVP 1 | Primera experiencia autónoma | Preparación | En desarrollo, perfil Next independiente |
 | MVP 2 | Biblioteca resistente a fallos y datos recuperables | MVP 1 | Pendiente |
 | MVP 3 | Versión instalable y actualizable para beta | MVP 2 y decisión de canal | Pendiente |
 | MVP 4 | Beta externa validada | MVP 3 | Pendiente |
@@ -64,13 +64,13 @@ La revisión del contenido y la prueba de MSIX pueden avanzar durante el MVP 1. 
 
 **Resultado:** instalar Orbit en un perfil vacío, configurar la biblioteca y abrir un juego sin instrucciones del desarrollador.
 
-- [ ] Crear una bienvenida breve: detectar plataformas, seleccionar carpetas y elegir si consultar fichas en línea, explicando qué servicio se utiliza.
-- [ ] No exigir la carpeta `Games` del escritorio ni rutas del equipo de desarrollo.
+- [x] Crear una bienvenida breve: detectar plataformas, seleccionar carpetas y elegir si consultar fichas en línea, explicando qué servicio se utiliza.
+- [x] No exigir la carpeta `Games` del escritorio ni rutas del equipo de desarrollo.
 - [ ] Presentar estados útiles para biblioteca vacía, carpeta inexistente, lanzador ausente y falta de conexión.
 - [ ] Mantener siempre disponible el alta manual de ejecutables y accesos compatibles.
 - [ ] Detectar región e idioma o permitir elegirlos; eliminar la región argentina fijada en las consultas. Esto no obliga a traducir toda la interfaz en este MVP.
 - [ ] Revisar el recorrido con teclado y el escalado de Windows a 100 %, 150 % y 200 % en las pantallas objetivo.
-- [ ] Sustituir dependencias de la biblioteca personal en las pruebas de escritorio por datos de prueba controlados.
+- [x] Sustituir dependencias de la biblioteca personal en las pruebas de escritorio por datos de prueba controlados.
 
 **Criterios de aceptación:**
 

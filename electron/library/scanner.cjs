@@ -102,7 +102,8 @@ async function scanLibrary(folders, script) {
     const dir = path.join(library, "steamapps");
     watchPaths.push(dir);
     if (!(await exists(dir))) {
-      missingSteamLibraries.push(library);
+      if (inventory.steamPath || library !== steamRoot)
+        missingSteamLibraries.push(library);
       continue;
     }
     for (const file of await entries(dir)) {

@@ -9,13 +9,15 @@ class LibraryStore {
       version: 1,
       games: [],
       settings: {
-        folders: [path.join(desktop, "Games")],
+        folders: [],
+        gameFolders: [],
         autoScan: true,
-        onlineMetadata: true,
+        onlineMetadata: false,
         closeToTray: false,
         minimizeOnLaunch: false,
       },
       scannedAt: null,
+      onboarding: { completedAt: null },
       warnings: [],
     };
   }

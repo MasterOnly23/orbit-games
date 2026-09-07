@@ -23,6 +23,7 @@ import GameCard from "./features/library/GameCard";
 import GameHero from "./features/library/GameHero";
 import GameDialog from "./features/library/GameDialog";
 import SettingsDialog from "./features/settings/SettingsDialog";
+import SetupWizard from "./features/onboarding/SetupWizard";
 const labels = {
   all: "Tu biblioteca",
   installed: "Listos para jugar",
@@ -42,6 +43,7 @@ export default function App() {
     ),
     [dialog, setDialog] = useState(null),
     [settingsOpen, setSettingsOpen] = useState(false),
+    [setupOpen, setSetupOpen] = useState(false),
     [launching, setLaunching] = useState(false);
   const searchRef = useRef();
   useEffect(() => {
@@ -132,11 +134,23 @@ export default function App() {
     );
     setLaunching(false);
   };
+  if (library && (!library.onboarding?.completedAt || setupOpen))
+    return (
+      <SetupWizard
+        settings={library.settings}
+        onComplete={() => setSetupOpen(false)}
+        onCancel={
+          library.onboarding?.completedAt
+            ? () => setSetupOpen(false)
+            : undefined
+        }
+      />
+    );
   return (
     <div className="app-shell">
       <div className="titlebar">
         <Orbit size={13} />
-        <span>ORBIT GAMES</span>
+        <span>ORBIT GAMES NEXT · PRUEBA</span>
         <span className="titlebar-separator">/</span>
         <span>Tu universo de juegos</span>
       </div>
@@ -146,7 +160,7 @@ export default function App() {
             <Orbit size={28} />
           </div>
           <div>
-            orbit<span>GAMES</span>
+            orbit<span>GAMES NEXT</span>
           </div>
         </div>
         <div className="nav-label">TU ESPACIO</div>
@@ -271,6 +285,7 @@ export default function App() {
               {selectedGame && view !== "hidden" && (
                 <GameHero
                   game={selectedGame}
+                  online={library.settings.onlineMetadata}
                   onPlay={play}
                   onFavorite={() => favorite(selectedGame)}
                   onEdit={() => setDialog(selectedGame.id)}
@@ -370,6 +385,7 @@ export default function App() {
                     {filtered.map((g) => (
                       <GameCard
                         key={g.id}
+                        online={library.settings.onlineMetadata}
                         game={g}
                         selected={g.id === selectedGame?.id}
                         onSelect={() =>
@@ -433,6 +449,12 @@ export default function App() {
         onClose={() => setSettingsOpen(false)}
         settings={library?.settings}
         action={action}
+        appName={library?.appName}
+        version={library?.version}
+        onSetup={() => {
+          setSettingsOpen(false);
+          setSetupOpen(true);
+        }}
       />
       <Snackbar
         open={!!toast}

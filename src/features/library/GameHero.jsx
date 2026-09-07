@@ -18,6 +18,7 @@ export default function GameHero({
   onReveal,
   onSource,
   launching,
+  online,
 }) {
   const status = statusOf(game),
     meta = game.metadata;
@@ -35,7 +36,7 @@ export default function GameHero({
       aria-label={`Juego seleccionado: ${nameOf(game)}`}
     >
       <div className="hero-art">
-        <GameArtwork game={game} hero />
+        <GameArtwork game={game} hero online={online} />
       </div>
       <div className="hero-gradient" />
       <div className="hero-content">

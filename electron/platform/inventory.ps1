@@ -6,7 +6,8 @@ $shortcuts = New-Object System.Collections.Generic.List[object]
 $ws = New-Object -ComObject WScript.Shell
 $shellApp = New-Object -ComObject Shell.Application
 if ($env:ORBIT_SCAN_FOLDERS) { $FoldersJson=$env:ORBIT_SCAN_FOLDERS }
-$folders = @($FoldersJson | ConvertFrom-Json)
+$parsedFolders = ConvertFrom-Json -InputObject $FoldersJson
+$folders = @($parsedFolders | Where-Object { $_ -is [string] -and ![string]::IsNullOrWhiteSpace($_) })
 foreach ($folder in $folders) {
   if (!(Test-Path -LiteralPath $folder)) { $warnings.Add("No se encuentra la carpeta: $folder"); continue }
   # Two levels of shortcut folders; do not traverse game data or emulator trees.

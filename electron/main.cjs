@@ -18,15 +18,15 @@ const { scanLibrary, exists } = require("./library/scanner.cjs");
 const { mergeGames } = require("./library/model.cjs");
 const { matchMetadata } = require("./library/metadata.cjs");
 const { registerIpc } = require("./ipc.cjs");
-app.setName("Orbit Games");
+const { identity, configureRuntime } = require("./runtime.cjs");
+const { registerOnboarding } = require("./onboarding/ipc.cjs");
+configureRuntime(app);
 protocol.registerSchemesAsPrivileged([
   {
     scheme: "orbit-art",
     privileges: { standard: true, secure: true, supportFetchAPI: true },
   },
 ]);
-if (process.env.ORBIT_DATA_DIR)
-  app.setPath("userData", path.resolve(process.env.ORBIT_DATA_DIR));
 const locked = app.requestSingleInstanceLock();
 if (!locked) {
   app.quit();
@@ -45,6 +45,7 @@ const inventoryScript = app.isPackaged
   ? path.join(process.resourcesPath, "inventory.ps1")
   : path.join(__dirname, "platform", "inventory.ps1");
 const loginOptions = () => ({
+  name: identity.loginName,
   path: process.execPath,
   args: app.isPackaged ? ["--startup"] : [app.getAppPath(), "--startup"],
 });
@@ -57,6 +58,7 @@ function snapshot() {
       startWithWindows: app.getLoginItemSettings(loginOptions()).openAtLogin,
     },
     version: app.getVersion(),
+    appName: identity.name,
   };
 }
 function notify() {
@@ -90,6 +92,7 @@ function report(error) {
   notify();
 }
 async function scan() {
+  if (!store.data.onboarding?.completedAt) return snapshot();
   if (scanning) return snapshot();
   scanning = true;
   notify();
@@ -172,7 +175,7 @@ function createWindow() {
     height: 950,
     minWidth: 1000,
     minHeight: 700,
-    title: "Orbit Games",
+    title: identity.name,
     backgroundColor: "#0d1016",
     show: false,
     titleBarStyle: "hidden",
@@ -204,6 +207,7 @@ function createWindow() {
   else win.loadFile(indexPath);
   win.on("focus", () => {
     if (
+      store.data.onboarding?.completedAt &&
       store.data.settings.autoScan &&
       Date.now() - Date.parse(store.data.scannedAt || 0) > 180000
     )
@@ -214,11 +218,11 @@ function createWindow() {
     path.join(__dirname, "..", "assets", "icon.ico"),
   );
   tray = new Tray(icon);
-  tray.setToolTip("Orbit Games");
+  tray.setToolTip(identity.name);
   tray.setContextMenu(
     Menu.buildFromTemplate([
       {
-        label: "Abrir Orbit Games",
+        label: "Abrir Orbit Games Next",
         click: () => {
           win.show();
           win.focus();
@@ -251,7 +255,7 @@ if (locked)
   app
     .whenReady()
     .then(async () => {
-      app.setAppUserModelId("com.pipe.orbitgames");
+      app.setAppUserModelId(identity.appId);
       store = new LibraryStore(app.getPath("userData"), app.getPath("desktop"));
       await store.load();
       protocol.handle("orbit-art", (request) => {
@@ -277,6 +281,17 @@ if (locked)
         setWatchers,
         loginOptions,
         inventoryScript,
+      });
+      registerOnboarding({
+        handle,
+        store,
+        save,
+        snapshot,
+        inventoryScript,
+        setWatchers,
+        enrich,
+        report,
+        desktop: app.getPath("desktop"),
       });
       if (!process.env.ORBIT_SKIP_SCAN) scan().catch(report);
       setInterval(() => {

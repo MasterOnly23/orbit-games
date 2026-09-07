@@ -2,278 +2,241 @@ const { _electron: electron } = require("playwright");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
 const path = require("node:path");
-const { LibraryStore } = require("../electron/library/store.cjs");
-const { scanLibrary } = require("../electron/library/scanner.cjs");
-const { mergeGames } = require("../electron/library/model.cjs");
-const waitFor = async (check, timeout = 30000) => {
-  const end = Date.now() + timeout;
-  while (Date.now() < end) {
-    if (await check()) return;
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error("Verification timed out");
-};
+const crypto = require("node:crypto");
+
 (async () => {
   const output = path.resolve("output/playwright");
   await fs.mkdir(output, { recursive: true });
-  const data = path.resolve(".test-data/desktop-qa");
-  await fs.mkdir(data, { recursive: true });
-  const watched = path.resolve(".test-data/watched");
-  await fs.mkdir(watched, { recursive: true });
-  const scan = await scanLibrary(
-    [path.join(process.env.USERPROFILE, "Desktop", "Games")],
-    path.resolve("electron/platform/inventory.ps1"),
+  const profile = path.join(
+    process.env.APPDATA,
+    "Orbit Games Next",
+    "qa",
+    crypto.randomUUID(),
   );
-  const store = new LibraryStore(data, process.env.USERPROFILE);
-  store.data.games = mergeGames(scan.games);
-  store.data.settings = {
-    ...store.data.settings,
-    folders: [watched],
-    onlineMetadata: false,
-    autoScan: false,
-  };
-  store.data.scannedAt = scan.scannedAt;
-  await store.save();
-  const env = { ...process.env, ORBIT_DATA_DIR: data, ORBIT_SKIP_SCAN: "1" };
+  const fixture = path.join(profile, "fixture-games");
+  await fs.mkdir(fixture, { recursive: true });
+  await fs.writeFile(
+    path.join(fixture, "Orbit QA Adventure.exe"),
+    "Non executable QA fixture. Never launched.",
+  );
+  await fs.writeFile(path.join(fixture, "unins000.exe"), "Not a game.");
+  const env = { ...process.env, ORBIT_DATA_DIR: profile };
   delete env.ELECTRON_RUN_AS_NODE;
-  const launchOptions = process.env.ORBIT_TEST_EXE
-    ? { executablePath: process.env.ORBIT_TEST_EXE, args: [], env }
-    : { args: ["."], env };
+  delete env.ORBIT_SKIP_SCAN;
+  delete env.ORBIT_DEV_URL;
+  const fromSource = process.argv.includes("--source");
+  const executable = fromSource
+    ? require("electron")
+    : process.env.ORBIT_TEST_EXE ||
+      path.resolve("release-next/win-unpacked/Orbit Games Next.exe");
+  const launchArgs = fromSource ? [path.resolve(".")] : [];
+  const errors = [];
+  const remoteRequests = [];
+  const observe = (page) => {
+    page.on("pageerror", (e) => errors.push(e.message));
+    page.on("request", (r) => {
+      if (/^https?:/.test(r.url())) remoteRequests.push(r.url());
+    });
+  };
   let application;
-  const errors = [],
-    checks = [];
   try {
-    application = await electron.launch(launchOptions);
-    const page = await application.firstWindow();
-    page.on("pageerror", (error) => errors.push(error.message));
-    await page.waitForSelector(".game-grid");
+    application = await electron.launch({
+      executablePath: executable,
+      args: launchArgs,
+      env,
+    });
+    let page = await application.firstWindow();
+    observe(page);
+    await page
+      .getByRole("heading", { name: "Tus juegos empiezan aquí" })
+      .waitFor();
+    const runtime = await application.evaluate(({ app }) => ({
+      name: app.getName(),
+      userData: app.getPath("userData"),
+      sessionData: app.getPath("sessionData"),
+    }));
+    assert.equal(runtime.name, "Orbit Games Next");
+    assert.equal(runtime.userData, profile);
+    assert.equal(runtime.sessionData, profile);
     const initial = await page.evaluate(() => window.orbit.getLibrary());
-    assert(initial.games.length > 90);
-    checks.push(`Live inventory: ${initial.games.length} entries`);
-    await page
-      .getByRole("textbox", { name: "Buscar un juego", exact: true })
-      .fill("Cyberpunk");
-    assert.equal(await page.locator(".game-card").count(), 1);
-    await page
-      .getByRole("button", { name: "Seleccionar Cyberpunk 2077", exact: true })
-      .click();
-    assert.equal(
-      await page.locator(".hero-content h1").innerText(),
-      "Cyberpunk 2077",
-    );
-    checks.push("Search and selection");
-    await page
-      .getByRole("button", { name: "Marcar favorito", exact: true })
-      .click();
-    await page
-      .getByRole("button", { name: "Editar juego", exact: true })
-      .click();
-    await page
-      .getByRole("textbox", { name: "Mis notas", exact: true })
-      .fill("Persistencia verificada");
-    await page
-      .getByRole("button", { name: "Guardar cambios", exact: true })
-      .click();
-    const cyberId = initial.games.find((g) => g.steamId === "1091500").id;
-    let saved = await page.evaluate(
-      (id) =>
-        window.orbit.getLibrary().then((s) => s.games.find((g) => g.id === id)),
-      cyberId,
-    );
-    assert(saved.favorite);
-    assert.equal(saved.notes, "Persistencia verificada");
-    checks.push("Favorite and notes saved");
-    await page.getByRole("button", { name: "Ajustes", exact: true }).click();
-    const initialStartup = await page
-      .getByRole("switch", { name: "Abrir al iniciar Windows", exact: true })
-      .isChecked();
-    try {
-      await page
-        .getByRole("switch", { name: "Abrir al iniciar Windows", exact: true })
-        .click();
-      await waitFor(() =>
-        page.evaluate(
-          (value) =>
-            window.orbit
-              .getLibrary()
-              .then((s) => s.settings.startWithWindows === value),
-          !initialStartup,
-        ),
-      );
-      checks.push("Accessible startup switch changes the real Windows setting");
-    } finally {
-      await page.evaluate(
-        (value) => window.orbit.settings({ startWithWindows: value }),
-        initialStartup,
-      );
-    }
-    await page.waitForTimeout(300);
-    await page.screenshot({ path: path.join(output, "settings.png") });
-    await page.getByRole("button", { name: "Listo", exact: true }).click();
-    // Native file picker returns our own harmless executable; real IPC and Windows launch remain active.
-    const fixture = path.resolve("output/launch-fixture.exe");
-    await fs.rm(path.resolve("output/launch-proof.txt"), { force: true });
-    await application.evaluate(({ dialog }, file) => {
-      dialog.showOpenDialog = async () => ({
-        canceled: false,
-        filePaths: [file],
-      });
+    assert.equal(initial.games.length, 0);
+    assert.equal(initial.scanning, false);
+    await page.screenshot({ path: path.join(output, "next-setup.png") });
+    await application.evaluate(({ dialog }, folder) => {
+      const original = dialog.showOpenDialog;
+      dialog.showOpenDialog = async (...args) => {
+        dialog.showOpenDialog = original;
+        if (args.at(-1).properties[0] !== "openDirectory")
+          throw new Error("Unexpected dialog");
+        return { canceled: false, filePaths: [folder] };
+      };
     }, fixture);
     await page
-      .getByRole("button", { name: "Añadir juego", exact: true })
+      .getByRole("button", { name: "Elegir carpeta de juegos", exact: true })
       .click();
     await page
-      .getByRole("button", { name: "Elegir archivo", exact: true })
+      .getByRole("button", { name: "Buscar juegos", exact: true })
       .click();
     await page
-      .getByRole("textbox", { name: "Nombre del juego", exact: true })
-      .fill("Orbit Launch Verification");
+      .getByRole("heading", { name: "Revisa tu biblioteca" })
+      .waitFor({ timeout: 120000 });
+    const checkbox = page.getByRole("checkbox", {
+      name: "Añadir Orbit QA Adventure",
+      exact: true,
+    });
+    await checkbox.check();
+    assert.equal(
+      await page.getByRole("checkbox", { name: /unins000/ }).count(),
+      0,
+    );
+    await page.screenshot({ path: path.join(output, "next-review.png") });
+    await page.setViewportSize({ width: 1000, height: 700 });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > window.innerWidth,
+      ),
+      false,
+    );
     await page
-      .getByRole("button", { name: "Añadir a mi biblioteca", exact: true })
+      .getByRole("button", { name: "Guardar y abrir biblioteca", exact: true })
       .click();
+    await page.waitForSelector(".game-grid");
+    const saved = await page.evaluate(() => window.orbit.getLibrary());
+    assert.ok(saved.onboarding.completedAt);
+    assert.ok(
+      saved.games.some((g) => g.name === "Orbit QA Adventure" && g.manual),
+    );
+    assert.equal(saved.settings.onlineMetadata, false);
     await page
       .getByRole("textbox", { name: "Buscar un juego", exact: true })
-      .fill("Orbit Launch Verification");
+      .fill("Orbit QA Adventure");
     await page
       .getByRole("button", {
-        name: "Seleccionar Orbit Launch Verification",
+        name: "Seleccionar Orbit QA Adventure",
         exact: true,
       })
       .click();
     await page
-      .getByRole("button", { name: "Jugar ahora", exact: true })
+      .getByRole("button", { name: "Editar juego", exact: true })
       .click();
-    await waitFor(() =>
-      fs.access(path.resolve("output/launch-proof.txt")).then(
-        () => true,
-        () => false,
-      ),
-    );
-    assert(
-      (
-        await fs.readFile(path.resolve("output/launch-proof.txt"), "utf8")
-      ).includes(path.dirname(fixture)),
-    );
-    checks.push(
-      "Manual executable: real process, proof file and correct working directory",
-    );
-    const manual = await page.evaluate(() =>
-      window.orbit
-        .getLibrary()
-        .then((s) =>
-          s.games.find((g) => g.name === "Orbit Launch Verification"),
-        ),
-    );
-    assert(manual.lastPlayed);
-    assert.equal(manual.launchCount, 1);
-    checks.push("Launch history");
-    await page.evaluate(() => window.orbit.settings({ onlineMetadata: true }));
-    await page.evaluate((id) => window.orbit.metadataRefresh(id), cyberId);
-    saved = await page.evaluate(
-      (id) =>
-        window.orbit.getLibrary().then((s) => s.games.find((g) => g.id === id)),
-      cyberId,
-    );
-    assert.equal(saved.metadata.title, "Cyberpunk 2077");
-    checks.push("Live Steam metadata");
-    await page.evaluate(() => window.orbit.settings({ onlineMetadata: false }));
     await application.evaluate(({ dialog }, file) => {
-      dialog.showOpenDialog = async () => ({
-        canceled: false,
-        filePaths: [file],
-      });
+      const original = dialog.showOpenDialog;
+      dialog.showOpenDialog = async (...args) => {
+        dialog.showOpenDialog = original;
+        if (args.at(-1).title !== "Selecciona una imagen para el juego")
+          throw new Error("Unexpected image picker");
+        return { canceled: false, filePaths: [file] };
+      };
     }, path.resolve("assets/icon.png"));
-    await page.evaluate((id) => window.orbit.chooseArtwork(id), manual.id);
-    await page.waitForFunction(
-      () =>
-        document.querySelector(".hero-art img")?.src.startsWith("orbit-art:") &&
-        document.querySelector(".hero-art img")?.naturalWidth > 0,
-    );
-    checks.push("Local artwork through restricted image protocol");
-    await page.evaluate((id) => window.orbit.clearArtwork(id), manual.id);
-    // Verify actual login-item registration and restore its original value immediately.
-    const before = await page.evaluate(() =>
-      window.orbit.getLibrary().then((s) => s.settings.startWithWindows),
-    );
-    try {
-      const enabled = await page.evaluate(() =>
-        window.orbit.settings({ startWithWindows: true }),
-      );
-      assert(enabled.settings.startWithWindows);
-      checks.push("Windows login item enabled and read back");
-    } finally {
-      await page.evaluate(
-        (value) => window.orbit.settings({ startWithWindows: value }),
-        before,
-      );
-    }
-    // A new URL dropped into the watched folder must appear without a manual scan.
-    await page.evaluate(() => window.orbit.settings({ autoScan: true }));
-    await waitFor(() =>
-      page.evaluate(() => window.orbit.getLibrary().then((s) => !s.scanning)),
-    );
-    const added = path.join(watched, "Orbit Watch Verification.url");
-    await fs.writeFile(
-      added,
-      "[InternetShortcut]\r\nURL=steam://rungameid/999999991\r\n",
-    );
-    await waitFor(
-      () =>
-        page.evaluate(() =>
-          window.orbit
-            .getLibrary()
-            .then((s) =>
-              s.games.some((g) => g.name === "Orbit Watch Verification"),
-            ),
-        ),
-      45000,
-    );
-    checks.push("Automatic folder detection");
-    await fs.unlink(added);
-    await page.evaluate(() => window.orbit.settings({ autoScan: false }));
     await page
-      .getByRole("textbox", { name: "Buscar un juego", exact: true })
-      .fill("Cyberpunk");
-    await page
-      .getByRole("button", { name: "Seleccionar Cyberpunk 2077", exact: true })
+      .getByRole("button", { name: "Usar una imagen de mi PC", exact: true })
       .click();
-    await page
-      .getByRole("textbox", { name: "Buscar un juego", exact: true })
-      .fill("");
-    await page.screenshot({ path: path.join(output, "library-verified.png") });
-    await application.evaluate(({ BrowserWindow }) =>
-      BrowserWindow.getAllWindows()[0].setSize(1000, 720),
+    await page.waitForFunction(
+      async () =>
+        (await window.orbit.getLibrary()).games.find(
+          (g) => g.name === "Orbit QA Adventure",
+        )?.artworkRevision,
     );
-    await page.screenshot({ path: path.join(output, "library-1000.png") });
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > window.innerWidth,
+    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    await page.waitForFunction(
+      () => document.querySelector(".hero-art img")?.naturalWidth > 0,
     );
-    assert.equal(overflow, false);
-    checks.push("Minimum window layout");
-    assert.equal(errors.length, 0);
-    checks.push("No renderer exceptions");
     await application.close();
     application = null;
-    application = await electron.launch(launchOptions);
-    const reopened = await application.firstWindow();
-    await reopened.waitForSelector(".game-grid");
-    const persisted = await reopened.evaluate(
-      (id) =>
-        window.orbit.getLibrary().then((s) => s.games.find((g) => g.id === id)),
-      cyberId,
+    application = await electron.launch({
+      executablePath: executable,
+      args: launchArgs,
+      env,
+    });
+    page = await application.firstWindow();
+    observe(page);
+    await page.waitForSelector(".game-grid", { timeout: 90000 });
+    await page.waitForFunction(
+      () => !document.querySelector(".scan-button")?.disabled,
+      null,
+      { timeout: 90000 },
     );
-    assert.equal(persisted.notes, "Persistencia verificada");
-    assert(persisted.favorite);
-    checks.push("Persistence across full restart");
-    console.log(JSON.stringify({ passed: true, checks, errors }, null, 2));
+    assert.equal(
+      await page
+        .getByRole("heading", { name: "Tus juegos empiezan aquí" })
+        .count(),
+      0,
+    );
+    const restored = await page.evaluate(() => window.orbit.getLibrary());
+    assert.ok(
+      restored.games.some((g) => g.name === "Orbit QA Adventure" && g.manual),
+    );
+    assert.equal(restored.onboarding.completedAt, saved.onboarding.completedAt);
+    assert.ok(
+      restored.games.find((g) => g.name === "Orbit QA Adventure")
+        .artworkRevision,
+    );
+    await page
+      .getByRole("textbox", { name: "Buscar un juego", exact: true })
+      .fill("Orbit QA Adventure");
+    await page
+      .getByRole("button", {
+        name: "Seleccionar Orbit QA Adventure",
+        exact: true,
+      })
+      .click();
+    await page.waitForFunction(
+      () => document.querySelector(".hero-art img")?.naturalWidth > 0,
+    );
+    assert.ok(
+      await page
+        .locator(".hero-art img")
+        .getAttribute("src")
+        .then((src) => src.startsWith("orbit-art:")),
+    );
+    await page.getByRole("button", { name: "Ajustes", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Revisar carpetas y juegos", exact: true })
+      .click();
+    await page
+      .getByRole("heading", { name: "Tus juegos empiezan aquí" })
+      .waitFor();
+    assert.ok(await page.getByText(fixture, { exact: true }).count());
+    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    await page.waitForSelector(".game-grid");
+    assert.deepEqual(errors, []);
+    assert.deepEqual(
+      remoteRequests,
+      [],
+      "Online features must stay off until explicitly enabled",
+    );
     await fs.writeFile(
-      path.join(output, "qa-results.json"),
-      JSON.stringify({ passed: true, checks, errors }, null, 2),
+      path.join(output, "next-qa-results.json"),
+      JSON.stringify(
+        {
+          success: true,
+          isolatedProfile: true,
+          artworkPersistedAfterRestart: true,
+          offlineRespected: true,
+          rendererErrors: errors,
+        },
+        null,
+        2,
+      ),
+    );
+    console.log(
+      JSON.stringify({
+        success: true,
+        isolatedProfile: true,
+        confirmedExecutablePersisted: true,
+        setupPersistedAfterRestart: true,
+        reopenedSetup: true,
+        narrowLayout: true,
+        artworkPersistedAfterRestart: true,
+        offlineRespected: true,
+        rendererErrors: errors,
+      }),
     );
   } finally {
     if (application) await application.close();
   }
+  // QA artifacts intentionally stay within the Next profile for diagnosis.
 })().catch((error) => {
   console.error(error);
-  process.exit(1);
+  process.exitCode = 1;
 });

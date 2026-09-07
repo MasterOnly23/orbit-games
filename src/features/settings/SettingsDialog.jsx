@@ -8,7 +8,15 @@ import {
   Divider,
 } from "@mui/material";
 import { FolderPlus, X, Download, Upload } from "lucide-react";
-export default function SettingsDialog({ open, onClose, settings, action }) {
+export default function SettingsDialog({
+  open,
+  onClose,
+  settings,
+  action,
+  appName,
+  version,
+  onSetup,
+}) {
   if (!settings) return null;
   const update = (patch) => action(() => window.orbit.settings(patch));
   const rows = [
@@ -47,6 +55,16 @@ export default function SettingsDialog({ open, onClose, settings, action }) {
         </p>
       </DialogTitle>
       <DialogContent>
+        <div className="form-section-heading">
+          <h3>Configurar la detección</h3>
+          <p>
+            Revisa tus plataformas y busca ejecutables en otras carpetas. Las
+            nuevas incorporaciones se confirman antes de guardarse.
+          </p>
+          <Button onClick={onSetup} startIcon={<FolderPlus size={18} />}>
+            Revisar carpetas y juegos
+          </Button>
+        </div>
         {rows.map(([key, title, description]) => (
           <label className="setting-row" key={key}>
             <div>
@@ -62,7 +80,7 @@ export default function SettingsDialog({ open, onClose, settings, action }) {
         ))}
         <Divider />
         <div className="form-section-heading">
-          <h3>Carpetas de juegos</h3>
+          <h3>Carpetas de accesos directos</h3>
           <p>
             Agrega accesos directos aquí y aparecerán en la biblioteca. Incluye
             las subcarpetas inmediatas.
@@ -135,7 +153,7 @@ export default function SettingsDialog({ open, onClose, settings, action }) {
           </Button>
         </div>
         <p className="settings-footer">
-          Orbit Games · 1.0.0
+          {appName} · {version}
           <br />
           Steam, EA, Xbox y otras marcas pertenecen a sus respectivos
           propietarios. Orbit abre tus lanzadores y respeta sus requisitos de

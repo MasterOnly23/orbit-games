@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Gamepad2 } from "lucide-react";
 import { nameOf } from "./useLibrary";
-export default function GameArtwork({ game, hero = false }) {
+export default function GameArtwork({ game, hero = false, online = false }) {
   const [failed, setFailed] = useState(0);
   const steamId = game.metadata?.steamId || game.steamId;
   const cover = steamId
@@ -12,7 +12,11 @@ export default function GameArtwork({ game, hero = false }) {
     (steamId
       ? `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${steamId}/header.jpg`
       : null);
-  const candidates = hero ? [game.metadata?.hero, header] : [cover, header];
+  const candidates = online
+    ? hero
+      ? [game.metadata?.hero, header]
+      : [cover, header]
+    : [];
   if (game.artworkRevision)
     candidates.unshift(`orbit-art://game/${game.id}?v=${game.artworkRevision}`);
   const sources = candidates.filter((s, i, a) => s && a.indexOf(s) === i);
@@ -23,6 +27,7 @@ export default function GameArtwork({ game, hero = false }) {
       game.metadata?.steamId,
       game.metadata?.hero,
       game.artworkRevision,
+      online,
     ],
   );
   const hue =
