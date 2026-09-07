@@ -1,0 +1,289 @@
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  shell,
+  Menu,
+  Tray,
+  nativeImage,
+  protocol,
+  net,
+} = require("electron");
+const fs = require("node:fs");
+const path = require("node:path");
+const { pathToFileURL } = require("node:url");
+const { LibraryStore } = require("./library/store.cjs");
+const { scanLibrary, exists } = require("./library/scanner.cjs");
+const { mergeGames } = require("./library/model.cjs");
+const { matchMetadata } = require("./library/metadata.cjs");
+const { registerIpc } = require("./ipc.cjs");
+app.setName("Orbit Games");
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "orbit-art",
+    privileges: { standard: true, secure: true, supportFetchAPI: true },
+  },
+]);
+if (process.env.ORBIT_DATA_DIR)
+  app.setPath("userData", path.resolve(process.env.ORBIT_DATA_DIR));
+const locked = app.requestSingleInstanceLock();
+if (!locked) {
+  app.quit();
+}
+let win,
+  store,
+  tray,
+  quitting = false,
+  scanning = false,
+  metadataRunning = false,
+  scanTimer,
+  watchers = [];
+const indexPath = path.join(__dirname, "..", "dist", "index.html");
+const devUrl = !app.isPackaged && process.env.ORBIT_DEV_URL;
+const inventoryScript = app.isPackaged
+  ? path.join(process.resourcesPath, "inventory.ps1")
+  : path.join(__dirname, "platform", "inventory.ps1");
+const loginOptions = () => ({
+  path: process.execPath,
+  args: app.isPackaged ? ["--startup"] : [app.getAppPath(), "--startup"],
+});
+function snapshot() {
+  return {
+    ...store.data,
+    scanning,
+    settings: {
+      ...store.data.settings,
+      startWithWindows: app.getLoginItemSettings(loginOptions()).openAtLogin,
+    },
+    version: app.getVersion(),
+  };
+}
+function notify() {
+  if (win && !win.isDestroyed())
+    win.webContents.send("library:changed", snapshot());
+}
+async function save() {
+  await store.save();
+  notify();
+}
+function setWatchers(paths) {
+  clearTimeout(scanTimer);
+  watchers.forEach((w) => w.close());
+  watchers = [];
+  if (!store.data.settings.autoScan) return;
+  for (const dir of paths) {
+    try {
+      const watcher = fs.watch(dir, { recursive: false }, () => {
+        clearTimeout(scanTimer);
+        scanTimer = setTimeout(() => {
+          if (store.data.settings.autoScan) scan().catch(report);
+        }, 1800);
+      });
+      watcher.on("error", () => {});
+      watchers.push(watcher);
+    } catch {}
+  }
+}
+function report(error) {
+  store.data.warnings = [error.message];
+  notify();
+}
+async function scan() {
+  if (scanning) return snapshot();
+  scanning = true;
+  notify();
+  try {
+    const result = await scanLibrary(
+      store.data.settings.folders,
+      inventoryScript,
+    );
+    store.data.games = mergeGames(result.games, store.data.games);
+    for (const game of store.data.games.filter(
+      (g) => g.manual && g.launch?.kind === "file",
+    )) {
+      const present = await exists(game.targetExecutable || game.launch.target);
+      game.status = present ? "installed" : "uninstalled";
+      game.statusReason = present
+        ? "El ejecutable está disponible."
+        : "El archivo ya no está disponible.";
+    }
+    store.data.scannedAt = result.scannedAt;
+    store.data.warnings = result.warnings;
+    setWatchers(result.watchPaths);
+    await store.save();
+  } catch (error) {
+    report(error);
+    throw error;
+  } finally {
+    scanning = false;
+    notify();
+  }
+  enrich().catch(report);
+  return snapshot();
+}
+async function enrich() {
+  if (metadataRunning || !store.data.settings.onlineMetadata) return;
+  metadataRunning = true;
+  try {
+    for (const candidate of store.data.games) {
+      if (quitting || !store.data.settings.onlineMetadata) break;
+      if (
+        candidate.metadata ||
+        candidate.hidden ||
+        (candidate.metadataCheckedAt &&
+          Date.now() - Date.parse(candidate.metadataCheckedAt) < 7 * 86400000)
+      )
+        continue;
+      try {
+        const meta = await matchMetadata(candidate);
+        const current = store.getGame(candidate.id);
+        if (!current.metadata) current.metadata = meta;
+        current.metadataCheckedAt = new Date().toISOString();
+        await save();
+      } catch {
+        // A failed request is not a negative match. Retry on a later scan.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 650));
+    }
+    await store.save();
+  } finally {
+    metadataRunning = false;
+  }
+}
+function handle(channel, callback) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    const url = event.senderFrame?.url || "";
+    const trusted = devUrl
+      ? url.startsWith(devUrl)
+      : url.split("?")[0] === pathToFileURL(indexPath).href;
+    if (
+      !trusted ||
+      event.sender !== win?.webContents ||
+      event.senderFrame !== win.webContents.mainFrame
+    )
+      throw new Error("Origen no autorizado.");
+    return callback(...args);
+  });
+}
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1480,
+    height: 950,
+    minWidth: 1000,
+    minHeight: 700,
+    title: "Orbit Games",
+    backgroundColor: "#0d1016",
+    show: false,
+    titleBarStyle: "hidden",
+    titleBarOverlay: { color: "#101319", symbolColor: "#bfc3ce", height: 38 },
+    icon: path.join(__dirname, "..", "assets", "icon.ico"),
+    webPreferences: {
+      preload: path.join(__dirname, "preload.cjs"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      webSecurity: true,
+    },
+  });
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  win.webContents.on("will-navigate", (event, url) => {
+    if (url !== win.webContents.getURL()) event.preventDefault();
+  });
+  win.webContents.session.setPermissionRequestHandler((_w, _p, callback) =>
+    callback(false),
+  );
+  win.on("close", (event) => {
+    if (store.data.settings.closeToTray && !quitting) {
+      event.preventDefault();
+      win.hide();
+    }
+  });
+  win.once("ready-to-show", () => win.show());
+  if (devUrl) win.loadURL(devUrl);
+  else win.loadFile(indexPath);
+  win.on("focus", () => {
+    if (
+      store.data.settings.autoScan &&
+      Date.now() - Date.parse(store.data.scannedAt || 0) > 180000
+    )
+      scan().catch(report);
+  });
+  Menu.setApplicationMenu(null);
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, "..", "assets", "icon.ico"),
+  );
+  tray = new Tray(icon);
+  tray.setToolTip("Orbit Games");
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: "Abrir Orbit Games",
+        click: () => {
+          win.show();
+          win.focus();
+        },
+      },
+      { label: "Buscar juegos nuevos", click: () => scan().catch(report) },
+      { type: "separator" },
+      { label: "Salir", click: () => app.quit() },
+    ]),
+  );
+  tray.on("double-click", () => {
+    win.show();
+    win.focus();
+  });
+}
+app.on("second-instance", () => {
+  if (win) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  }
+});
+app.on("before-quit", () => {
+  quitting = true;
+  clearTimeout(scanTimer);
+  watchers.forEach((w) => w.close());
+});
+app.on("window-all-closed", () => app.quit());
+if (locked)
+  app
+    .whenReady()
+    .then(async () => {
+      app.setAppUserModelId("com.pipe.orbitgames");
+      store = new LibraryStore(app.getPath("userData"), app.getPath("desktop"));
+      await store.load();
+      protocol.handle("orbit-art", (request) => {
+        const url = new URL(request.url);
+        const id = url.pathname.slice(1);
+        if (url.hostname !== "game" || !/^\w{20}$/.test(id))
+          return new Response("Not found", { status: 404 });
+        return net.fetch(
+          pathToFileURL(path.join(store.directory, "artwork", `${id}.jpg`))
+            .href,
+        );
+      });
+      createWindow();
+      registerIpc({
+        win,
+        store,
+        handle,
+        snapshot,
+        scan,
+        save,
+        enrich,
+        report,
+        setWatchers,
+        loginOptions,
+        inventoryScript,
+      });
+      if (!process.env.ORBIT_SKIP_SCAN) scan().catch(report);
+      setInterval(() => {
+        if (store.data.settings.autoScan && !quitting) scan().catch(report);
+      }, 300000).unref();
+    })
+    .catch((error) => {
+      dialog.showErrorBox("No se pudo abrir Orbit Games", error.message);
+      app.quit();
+    });

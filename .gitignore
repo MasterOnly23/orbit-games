@@ -1,0 +1,25 @@
+node_modules/
+dist/
+release/
+output/
+*.log
+.test-data/
+
+# Local configuration, credentials and signing certificates
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+*.pem
+
+# Personal library and artwork
+library.json
+library.json.bak
+artwork/
+
+# Local handoffs and operating system files
+_handoffs/
+Thumbs.db
+.DS_Store

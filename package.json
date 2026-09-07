@@ -1,0 +1,66 @@
+{
+  "name": "orbit-games",
+  "productName": "Orbit Games",
+  "version": "1.0.0",
+  "description": "Tu biblioteca de juegos para Windows",
+  "author": "Pipe",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.cjs",
+    "build": "vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.cjs",
+    "package": "npm run build && electron-builder --win nsis --x64",
+    "package:dir": "npm run build && electron-builder --win --dir --x64"
+  },
+  "build": {
+    "appId": "com.pipe.orbitgames",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "electron/platform/inventory.ps1",
+        "to": "inventory.ps1"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "signExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Orbit Games",
+      "runAfterFinish": false
+    }
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^9.4.0",
+    "lucide-react": "^1.41.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-hook-form": "^7.87.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.6",
+    "vite": "^8.2.2"
+  }
+}
