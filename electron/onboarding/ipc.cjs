@@ -1,11 +1,11 @@
 const crypto = require("node:crypto");
-const path = require("node:path");
 const { scanLibrary, inspectManual } = require("../library/scanner.cjs");
 const { mergeGames } = require("../library/model.cjs");
 const {
   validateFolders,
   findExecutableCandidates,
   folderSuggestions,
+  unknownCandidates,
 } = require("./discovery.cjs");
 
 function registerOnboarding({
@@ -33,28 +33,10 @@ function registerOnboarding({
       const scan = await scanLocal(folders, inventoryScript);
       const extra = await findExecutableCandidates(gameFolders);
       const games = mergeGames(scan.games);
-      const knownTargets = new Set(
-        [...games, ...store.data.games]
-          .flatMap((g) => [
-            g.targetExecutable,
-            g.launch?.kind === "file" && g.launch.target,
-          ])
-          .filter(Boolean)
-          .map((p) => p.toLowerCase()),
-      );
-      const candidates = extra.candidates.filter(
-        (c) =>
-          !knownTargets.has(c.target.toLowerCase()) &&
-          !games.some((g) => {
-            if (!g.installPath) return false;
-            const relative = path.relative(g.installPath, c.target);
-            return (
-              relative &&
-              !relative.startsWith("..") &&
-              !path.isAbsolute(relative)
-            );
-          }),
-      );
+      const candidates = unknownCandidates(extra.candidates, [
+        ...games,
+        ...store.data.games,
+      ]);
       preview = {
         id: crypto.randomUUID(),
         folders,
@@ -122,8 +104,12 @@ function registerOnboarding({
       store.data.onboarding = { completedAt: new Date().toISOString() };
       store.data.scannedAt = preview.scan.scannedAt;
       store.data.warnings = preview.scan.warnings;
+      store.data.discovery = {
+        candidates: [],
+        checkedAt: new Date().toISOString(),
+      };
       await save();
-      setWatchers(preview.scan.watchPaths);
+      setWatchers([...preview.scan.watchPaths, ...preview.gameFolders]);
       preview = null;
       enrich().catch(report);
       return snapshot();

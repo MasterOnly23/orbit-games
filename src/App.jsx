@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Alert, Snackbar } from "@mui/material";
+import { Alert, Snackbar, Button } from "@mui/material";
 import {
   Orbit,
   Library,
@@ -215,7 +215,7 @@ export default function App() {
             <span className="live-dot" />
             <span>
               Tu biblioteca está en este PC
-              <small>Sin cuentas. A tu manera.</small>
+              <small>Cuentas opcionales. A tu manera.</small>
             </span>
           </div>
           <button
@@ -282,6 +282,21 @@ export default function App() {
             </div>
           ) : (
             <>
+              {library.discovery?.candidates?.length > 0 && (
+                <Alert
+                  severity="info"
+                  sx={{ m: 2 }}
+                  action={
+                    <Button color="inherit" onClick={() => setSetupOpen(true)}>
+                      Revisar
+                    </Button>
+                  }
+                >
+                  Encontramos {library.discovery.candidates.length} posibles
+                  juegos nuevos en tus carpetas. Revisa los ejecutables antes de
+                  agregarlos.
+                </Alert>
+              )}
               {selectedGame && view !== "hidden" && (
                 <GameHero
                   game={selectedGame}

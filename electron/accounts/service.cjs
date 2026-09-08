@@ -76,7 +76,9 @@ function createAccountService({
               "duplicate",
               "Esta cuenta ya está agregada. Usa Sincronizar o desconéctala antes de volver a conectarla.",
             );
-          const catalog = await provider.fetchLibrary(credentials);
+          const catalog = await provider.fetchLibrary(credentials, {
+            fetchImpl: credentials.fetchImpl,
+          });
           const account = {
             id,
             providerId,
@@ -114,7 +116,9 @@ function createAccountService({
               "account-mismatch",
               "La sesión corresponde a otra cuenta. Desconéctala y vuelve a conectarla.",
             );
-          const catalog = await provider.fetchLibrary(credentials);
+          const catalog = await provider.fetchLibrary(credentials, {
+            fetchImpl: credentials.fetchImpl,
+          });
           store.data.games = mergeAccountLibrary(
             store.data.games,
             account,

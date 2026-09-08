@@ -26,6 +26,12 @@ const {
   clearProviderSession,
 } = require("./accounts/auth-window.cjs");
 const { steam } = require("./accounts/steam.cjs");
+const { gog } = require("./accounts/gog.cjs");
+const {
+  findExecutableCandidates,
+  unknownCandidates,
+} = require("./onboarding/discovery.cjs");
+const { fileAvailability } = require("./library/availability.cjs");
 configureRuntime(app);
 protocol.registerSchemesAsPrivileged([
   {
@@ -111,15 +117,24 @@ async function scan() {
     for (const game of store.data.games.filter(
       (g) => g.manual && g.launch?.kind === "file",
     )) {
-      const present = await exists(game.targetExecutable || game.launch.target);
-      game.status = present ? "installed" : "uninstalled";
-      game.statusReason = present
-        ? "El ejecutable está disponible."
-        : "El archivo ya no está disponible.";
+      Object.assign(
+        game,
+        await fileAvailability(game.targetExecutable || game.launch.target),
+      );
     }
+    const extra = await findExecutableCandidates(
+      store.data.settings.gameFolders || [],
+    );
+    store.data.discovery = {
+      candidates: unknownCandidates(extra.candidates, store.data.games),
+      checkedAt: new Date().toISOString(),
+    };
     store.data.scannedAt = result.scannedAt;
-    store.data.warnings = result.warnings;
-    setWatchers(result.watchPaths);
+    store.data.warnings = [...result.warnings, ...extra.warnings];
+    setWatchers([
+      ...result.watchPaths,
+      ...(store.data.settings.gameFolders || []),
+    ]);
     await store.save();
   } catch (error) {
     report(error);
@@ -281,7 +296,7 @@ if (locked)
         readSession: (options) =>
           readProviderSession({ ...options, parent: win }),
         clearSession: clearProviderSession,
-        providers: { steam },
+        providers: { steam, gog },
       });
       handle("accounts:connect", (provider) => accounts.connect(provider));
       handle("accounts:sync", (id) => accounts.sync(id));

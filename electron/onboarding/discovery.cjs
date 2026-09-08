@@ -96,8 +96,36 @@ async function folderSuggestions(desktop) {
   return folders;
 }
 
+function unknownCandidates(candidates, games) {
+  const targets = new Set(
+    games
+      .flatMap((g) => [
+        g.targetExecutable,
+        g.launch?.kind === "file" ? g.launch.target : null,
+      ])
+      .filter(Boolean)
+      .map((p) => path.resolve(p).toLowerCase()),
+  );
+  return candidates.filter(
+    (candidate) =>
+      !targets.has(path.resolve(candidate.target).toLowerCase()) &&
+      !games.some((game) => {
+        // A manually added executable does not identify every other game in its folder.
+        if (game.manual || !game.installPath) return false;
+        const relative = path.relative(game.installPath, candidate.target);
+        return (
+          relative &&
+          relative !== ".." &&
+          !relative.startsWith(`..${path.sep}`) &&
+          !path.isAbsolute(relative)
+        );
+      }),
+  );
+}
+
 module.exports = {
   validateFolders,
   findExecutableCandidates,
   folderSuggestions,
+  unknownCandidates,
 };

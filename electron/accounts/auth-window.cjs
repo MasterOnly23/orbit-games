@@ -83,10 +83,18 @@ async function readProviderSession({
       try {
         // The provider's session material goes only to the Electron main process.
         // There is no Orbit preload or app IPC bridge in this remote window.
-        const value = await win.webContents.executeJavaScript(
-          provider.readSessionScript,
-        );
-        if (value && provider.validSession(value)) finish(null, value);
+        const value = provider.readSession
+          ? await provider.readSession({
+              fetchImpl: isolated.fetch.bind(isolated),
+            })
+          : await win.webContents.executeJavaScript(provider.readSessionScript);
+        if (value && provider.validSession(value))
+          finish(null, {
+            ...value,
+            ...(provider.usesBrowserSession
+              ? { fetchImpl: isolated.fetch.bind(isolated) }
+              : {}),
+          });
         else if (!interactive && !win.webContents.isLoading())
           finish(
             new ProviderError(

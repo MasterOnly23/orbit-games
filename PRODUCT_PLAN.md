@@ -22,6 +22,8 @@ Este objetivo amplía el primer asistente de `e9883d5`. No se considera terminad
 
 La arquitectura no debe exigir una cuenta Orbit para usar una biblioteca local. La sincronización, las sesiones y el inventario se mantienen en el equipo del usuario.
 
+Ampliación explícita del usuario: agregar todas las conexiones viables y admitir juegos manuales, sin plataforma o con su propio lanzador. El soporte manual no reemplaza ninguna integración viable; ambos recorridos forman parte del producto.
+
 ## Requisitos y evidencia de aceptación
 
 | ID | Requisito | Evidencia necesaria | Estado |
@@ -70,3 +72,5 @@ Las etapas pueden solaparse. La terminación se evalúa contra el objetivo compl
 - `e9883d5`: aislamiento de Next, onboarding de carpetas, búsqueda acotada y confirmación de ejecutables. 14 pruebas y recorrido de escritorio en un equipo. No es un candidato público completo.
 - Siguiente incremento: unión de catálogo remoto con instalaciones y preferencias, recuperación desde respaldo aun si falta el archivo principal y conector Steam experimental en Ajustes. 21 pruebas automatizadas pasan; la autenticación real, persistencia de sesión, revocación y compatibilidad Windows 10 siguen pendientes. No se cuenta todavía como soporte de Steam validado.
 - El conector Steam usa como referencia Playnite Extensions MIT, commit `3085ebd8b5906b53d3f005ef08141d641f4c469d`; el aviso se incluye en `THIRD_PARTY_NOTICES.md` y en el paquete.
+- Conector GOG experimental: sesión web propia, consulta paginada con comprobación de integridad y descarte de tokens no necesarios. Login real y correspondencia con instalaciones locales todavía por validar. Misma referencia MIT de Playnite Extensions.
+- Detección continua de candidatos en carpetas adicionales, con aviso y confirmación; disponibilidad de ejecutables manuales distingue archivo ausente de unidad inaccesible. 25 pruebas pasan y el recorrido de escritorio confirma que un nuevo ejecutable se propone sin incorporarse automáticamente.

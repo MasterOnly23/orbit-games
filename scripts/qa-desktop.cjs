@@ -189,12 +189,41 @@ const crypto = require("node:crypto");
         .getAttribute("src")
         .then((src) => src.startsWith("orbit-art:")),
     );
+    await fs.writeFile(
+      path.join(fixture, "Orbit QA New Arrival.exe"),
+      "Non executable QA fixture. Never launched.",
+    );
+    await page.evaluate(() => window.orbit.scan());
+    const discovered = await page.evaluate(() => window.orbit.getLibrary());
+    assert.ok(
+      discovered.discovery.candidates.some(
+        (candidate) => candidate.name === "Orbit QA New Arrival",
+      ),
+    );
+    assert.ok(
+      !discovered.games.some((game) => game.name === "Orbit QA New Arrival"),
+      "Discovery must require confirmation",
+    );
+    await page.getByRole("button", { name: "Revisar", exact: true }).waitFor();
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
-    await page.getByRole("button", { name: "Conectar Steam", exact: true }).waitFor();
-    assert.equal((await page.evaluate(() => window.orbit.getLibrary())).accounts.length, 0);
-    const unsupported = await page.evaluate(() => window.orbit.connectAccount("unsupported-provider"));
+    await page
+      .getByRole("button", { name: "Conectar GOG", exact: true })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Conectar Steam", exact: true })
+      .waitFor();
+    assert.equal(
+      (await page.evaluate(() => window.orbit.getLibrary())).accounts.length,
+      0,
+    );
+    const unsupported = await page.evaluate(() =>
+      window.orbit.connectAccount("unsupported-provider"),
+    );
     assert.equal(unsupported.error.code, "unsupported");
-    await page.screenshot({ path: path.join(output, "next-accounts.png"), animations: "disabled" });
+    await page.screenshot({
+      path: path.join(output, "next-accounts.png"),
+      animations: "disabled",
+    });
     await page
       .getByRole("button", { name: "Revisar carpetas y juegos", exact: true })
       .click();

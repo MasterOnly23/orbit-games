@@ -27,14 +27,14 @@ export default function AccountsPanel({ accounts = [] }) {
     <Stack spacing={2} sx={{ py: 2 }}>
       <Typography variant="h6">Cuentas de juegos</Typography>
       <Typography variant="body2" color="text.secondary">
-        Conecta Steam para consultar también juegos sin instalación local. El
-        inicio de sesión ocurre en la página de Steam. Orbit guarda una sesión
-        propia en este equipo.
+        Conecta tus cuentas para consultar también juegos sin instalación local.
+        El inicio de sesión ocurre en la página de cada plataforma. Orbit guarda
+        una sesión propia en este equipo.
       </Typography>
       <Alert severity="info">
-        Conector comunitario experimental. Steam puede cambiar su
-        funcionamiento; la conexión real todavía está en validación. No
-        garantiza juegos compartidos por otras cuentas.
+        Conectores comunitarios experimentales. Las plataformas pueden cambiar
+        su funcionamiento; las conexiones reales todavía están en validación. No
+        se garantiza juegos compartidos por otras cuentas.
       </Alert>
       {accounts.map((account) => (
         <Stack
@@ -85,18 +85,24 @@ export default function AccountsPanel({ accounts = [] }) {
           </Stack>
         </Stack>
       ))}
-      <Button
-        variant="outlined"
-        disabled={busy}
-        onClick={() =>
-          run(
-            () => window.orbit.connectAccount("steam"),
-            "Cuenta conectada y biblioteca importada.",
-          )
-        }
-      >
-        {busy ? "Procesando…" : "Conectar Steam"}
-      </Button>
+      {[
+        { id: "steam", name: "Steam" },
+        { id: "gog", name: "GOG" },
+      ].map((provider) => (
+        <Button
+          key={provider.id}
+          variant="outlined"
+          disabled={busy}
+          onClick={() =>
+            run(
+              () => window.orbit.connectAccount(provider.id),
+              "Cuenta conectada y biblioteca importada.",
+            )
+          }
+        >
+          {busy ? "Procesando…" : `Conectar ${provider.name}`}
+        </Button>
+      ))}
       <Typography variant="caption" color="text.secondary">
         Desconectar elimina la sesión de Orbit de este equipo y conserva los
         juegos importados. Puedes usar la biblioteca local sin conectar cuentas.

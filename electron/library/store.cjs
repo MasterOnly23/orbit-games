@@ -9,6 +9,7 @@ class LibraryStore {
       version: 1,
       games: [],
       accounts: [],
+      discovery: { candidates: [], checkedAt: null },
       settings: {
         folders: [],
         gameFolders: [],
