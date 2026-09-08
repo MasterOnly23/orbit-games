@@ -37,6 +37,7 @@ export default function GameCard({
             />
             {game.provider}
           </span>
+          {game.accountAccessNote && <small>{game.accountAccessNote}</small>}
         </div>
       </button>
       <button

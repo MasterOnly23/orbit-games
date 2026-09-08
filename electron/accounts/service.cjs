@@ -85,6 +85,7 @@ function createAccountService({
             providerId,
             provider: provider.name,
             externalId: credentials.externalId,
+            identityVerified: credentials.identityVerified !== false,
             displayName: String(
               credentials.displayName || credentials.externalId,
             ).slice(0, 200),

@@ -29,6 +29,7 @@ const {
 const { steam } = require("./accounts/steam.cjs");
 const { gog } = require("./accounts/gog.cjs");
 const { epic } = require("./accounts/epic.cjs");
+const { humble } = require("./accounts/humble.cjs");
 const { CredentialVault } = require("./accounts/vault.cjs");
 const {
   findExecutableCandidates,
@@ -310,7 +311,7 @@ if (locked)
           await clearProviderSession(partition);
           await vault.remove(id);
         },
-        providers: { steam, gog, epic },
+        providers: { steam, gog, epic, humble },
       });
       handle("accounts:connect", (provider) => accounts.connect(provider));
       handle("accounts:sync", (id) => accounts.sync(id));

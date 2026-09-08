@@ -36,6 +36,8 @@ En el código posterior a alfa 2, **Añadir/Editar juego → Opciones del ejecut
 
 ## Ejecutar y compilar
 
+El código posterior a alfa 2 añade Humble Bundle como conexión experimental. Distingue descargas para Windows de referencias de claves para otras tiendas y no guarda códigos de canje. La activación y la identidad estable de la cuenta no se verifican; el login real está pendiente. `node scripts/qa-humble.cjs` comprueba el recorrido con respuestas controladas.
+
 Requiere Windows y Node.js 24 compatible con las dependencias fijadas.
 
 ```powershell

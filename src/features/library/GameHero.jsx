@@ -29,6 +29,8 @@ export default function GameHero({
     "Epic Games",
     "Ubisoft",
     "Battle.net",
+    "Humble Bundle",
+    "GOG",
   ].includes(game.provider);
   return (
     <section
@@ -76,7 +78,9 @@ export default function GameHero({
               ? "Abriendo…"
               : status === "uninstalled"
                 ? canOpenLauncher
-                  ? "Abrir lanzador"
+                  ? ["Humble Bundle", "GOG"].includes(game.provider)
+                    ? "Ver biblioteca web"
+                    : "Abrir lanzador"
                   : "Actualizar ruta"
                 : status === "unknown"
                   ? "Abrir juego"
@@ -124,6 +128,9 @@ export default function GameHero({
           )}
         </div>
       </div>
+      {game.accountAccessNote && (
+        <p className="account-access-note">{game.accountAccessNote}</p>
+      )}
       {meta && (
         <button className="source-credit" onClick={onSource}>
           {game.artworkRevision ? "Ficha: Steam" : "Ficha e imágenes: Steam"}{" "}

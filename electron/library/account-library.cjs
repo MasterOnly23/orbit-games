@@ -81,6 +81,8 @@ function mergeAccountLibrary(
       state: "available",
       checkedAt: at,
     };
+    if (typeof item.accessNote === "string")
+      game.accountAccessNote = item.accessNote.slice(0, 200);
     game.accountEntitlements = [
       ...game.accountEntitlements.filter((a) => a.accountId !== account.id),
       access,

@@ -1,6 +1,6 @@
 # Third-party notices
 
-Steam, GOG and Epic connector authentication and library lookup are adapted from the Playnite Extensions integrations (commit 3085ebd8b5906b53d3f005ef08141d641f4c469d).
+Steam, GOG, Epic and Humble connector authentication and library lookup are adapted from the Playnite Extensions integrations (commit 3085ebd8b5906b53d3f005ef08141d641f4c469d).
 Source: https://github.com/JosefNemec/PlayniteExtensions
 
 MIT License

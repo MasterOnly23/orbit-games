@@ -91,6 +91,7 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
         { id: "steam", name: "Steam" },
         { id: "gog", name: "GOG" },
         { id: "epic", name: "Epic Games" },
+        { id: "humble", name: "Humble Bundle" },
       ].map((provider) => (
         <Button
           key={provider.id}
@@ -106,6 +107,11 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
           {busy ? "Procesando…" : `Conectar ${provider.name}`}
         </Button>
       ))}
+      <Typography variant="caption" color="text.secondary">
+        Humble importa descargas para Windows y referencias de claves para otras
+        tiendas. No muestra, guarda ni activa códigos de canje. La conexión se
+        identifica por su sesión local.
+      </Typography>
       <Typography variant="caption" color="text.secondary">
         Desconectar elimina la sesión de Orbit de este equipo y conserva los
         juegos importados. Puedes usar la biblioteca local sin conectar cuentas.

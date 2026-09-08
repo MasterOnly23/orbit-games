@@ -1170,3 +1170,11 @@ main {
     scroll-behavior: auto !important;
   }
 }
+.account-access-note {
+  position: absolute;
+  bottom: 14px;
+  left: 38px;
+  color: #c9d0dc;
+  font-size: 12px;
+  max-width: 65%;
+}

@@ -95,6 +95,11 @@ async function readProviderSession({
         if (value && provider.validSession(value))
           finish(null, {
             ...value,
+            // Some web libraries expose no stable account identity. Keep their
+            // connection scoped to this private session, without claiming identity verification.
+            ...(provider.sessionIdentity
+              ? { externalId: partition, identityVerified: false }
+              : {}),
             ...(provider.usesBrowserSession
               ? { fetchImpl: isolated.fetch.bind(isolated) }
               : {}),

@@ -120,6 +120,7 @@ function mergeGames(detected, previous = []) {
       customName: old?.customName || "",
       artworkRevision: old?.artworkRevision || null,
       launchOptions: old?.launchOptions || candidate.launchOptions,
+      accountAccessNote: old?.accountAccessNote || candidate.accountAccessNote,
       accountEntitlements:
         old?.accountEntitlements || candidate.accountEntitlements || [],
       platformPlaytimeMinutes: old?.platformPlaytimeMinutes,

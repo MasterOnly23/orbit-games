@@ -132,6 +132,8 @@ function registerIpc({
       "Epic Games": "com.epicgames.launcher://library",
       Ubisoft: "uplay://",
       "Battle.net": "battlenet://",
+      "Humble Bundle": "https://www.humblebundle.com/home/library",
+      GOG: "https://www.gog.com/account/",
     };
     const uri = uris[g.provider];
     if (!uri)
