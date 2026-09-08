@@ -1,7 +1,7 @@
 {
   "name": "orbit-games-next",
   "productName": "Orbit Games Next",
-  "version": "0.2.0-alpha.1",
+  "version": "0.2.0-alpha.2",
   "description": "Orbit Games Next: biblioteca independiente en desarrollo",
   "author": "Pipe",
   "private": true,

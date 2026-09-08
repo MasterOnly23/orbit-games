@@ -61,6 +61,7 @@ function createAccountService({
         let retained = false;
         try {
           const credentials = await readSession({
+            id,
             partition: partitionFor(id),
             provider,
             interactive: true,
@@ -98,7 +99,8 @@ function createAccountService({
           await save();
           return { count: catalog.games.length };
         } finally {
-          if (!retained) await clearSession(partitionFor(id)).catch(() => {});
+          if (!retained)
+            await clearSession(partitionFor(id), id).catch(() => {});
         }
       }),
     sync: (id) =>
@@ -107,6 +109,7 @@ function createAccountService({
           provider = providers[account.providerId];
         try {
           const credentials = await readSession({
+            id,
             partition: partitionFor(id),
             provider,
             interactive: false,
@@ -139,7 +142,7 @@ function createAccountService({
     disconnect: (id) =>
       run(async () => {
         find(id);
-        await clearSession(partitionFor(id));
+        await clearSession(partitionFor(id), id);
         store.data.accounts = store.data.accounts.filter((a) => a.id !== id);
         store.data.games = disconnectAccountLibrary(store.data.games, id);
         await save();

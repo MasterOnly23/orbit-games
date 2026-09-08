@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Alert, Button, Stack, Typography } from "@mui/material";
 
-export default function AccountsPanel({ accounts = [] }) {
+export default function AccountsPanel({ accounts = [], onBusyChange }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null);
   const run = async (operation, success) => {
     setBusy(true);
+    onBusyChange?.(true);
     setMessage(null);
     try {
       const result = await operation();
@@ -21,6 +22,7 @@ export default function AccountsPanel({ accounts = [] }) {
       });
     } finally {
       setBusy(false);
+      onBusyChange?.(false);
     }
   };
   return (
@@ -88,6 +90,7 @@ export default function AccountsPanel({ accounts = [] }) {
       {[
         { id: "steam", name: "Steam" },
         { id: "gog", name: "GOG" },
+        { id: "epic", name: "Epic Games" },
       ].map((provider) => (
         <Button
           key={provider.id}

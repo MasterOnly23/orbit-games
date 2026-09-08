@@ -9,8 +9,16 @@ import {
 } from "@mui/material";
 import { FolderPlus, ArrowRight, CheckCircle2, X, Search } from "lucide-react";
 import "./setup.css";
+import AccountsPanel from "../accounts/AccountsPanel";
 
-export default function SetupWizard({ settings, onComplete, onCancel }) {
+export default function SetupWizard({
+  settings,
+  accounts,
+  onComplete,
+  onCancel,
+}) {
+  const [showAccounts, setShowAccounts] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [folders, setFolders] = useState(settings.folders || []);
   const [gameFolders, setGameFolders] = useState(settings.gameFolders || []);
   const [suggestions, setSuggestions] = useState([]);
@@ -85,19 +93,28 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
             ORBIT GAMES NEXT · VERSIÓN DE PRUEBA
           </span>
           <h1>
-            {preview ? "Revisa tu biblioteca" : "Tus juegos empiezan aquí"}
+            {showAccounts
+              ? "Tus cuentas, si las necesitas"
+              : preview
+                ? "Revisa tu biblioteca"
+                : "Tus juegos empiezan aquí"}
           </h1>
           <p>
-            {preview
-              ? "Comprueba lo encontrado antes de incorporarlo a esta biblioteca."
-              : "Encuentra tus juegos en este PC. Esta versión tiene su propia biblioteca, independiente de Orbit Games."}
+            {showAccounts
+              ? "Este paso es opcional. Puedes usar Orbit con tus juegos locales y conectar cuentas más adelante."
+              : preview
+                ? "Comprueba lo encontrado antes de incorporarlo a esta biblioteca."
+                : "Encuentra tus juegos en este PC. Esta versión tiene su propia biblioteca, independiente de Orbit Games."}
           </p>
           <ol className="setup-steps" aria-label="Pasos de configuración">
             <li aria-current={!preview ? "step" : undefined}>
               1 · Dónde buscar
             </li>
-            <li aria-current={preview ? "step" : undefined}>
-              2 · Revisar y guardar
+            <li aria-current={preview && !showAccounts ? "step" : undefined}>
+              2 · Revisar juegos
+            </li>
+            <li aria-current={showAccounts ? "step" : undefined}>
+              3 · Cuentas opcionales
             </li>
           </ol>
         </header>
@@ -106,7 +123,15 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
             {error}
           </Alert>
         )}
-        {!preview ? (
+        {showAccounts ? (
+          <section className="setup-panel">
+            <AccountsPanel accounts={accounts} onBusyChange={setConnecting} />
+            <p className="setup-note">
+              Las cuentas que conectes se guardan al completar su
+              sincronización. Volver al paso anterior conserva esas conexiones.
+            </p>
+          </section>
+        ) : !preview ? (
           <>
             <section className="setup-panel">
               <h2>Plataformas detectadas automáticamente</h2>
@@ -115,9 +140,9 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
                 otros lanzadores, también en sus bibliotecas de otros discos.
               </p>
               <p className="setup-note">
-                Esta primera versión detecta juegos locales. La conexión con
-                cuentas para consultar juegos no instalados llegará en una etapa
-                posterior.
+                Puedes agregar juegos sin plataforma y lanzadores propios. Al
+                final podrás conectar cuentas para consultar también tu
+                biblioteca en línea.
               </p>
             </section>
             <section className="setup-panel">
@@ -284,15 +309,23 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
           </div>
           <div className="setup-buttons">
             {onCancel && (
-              <Button disabled={busy} color="inherit" onClick={onCancel}>
+              <Button
+                disabled={busy || connecting}
+                color="inherit"
+                onClick={onCancel}
+              >
                 Cancelar
               </Button>
             )}
             {preview && (
               <Button
-                disabled={busy}
+                disabled={busy || connecting}
                 color="inherit"
                 onClick={() => {
+                  if (showAccounts) {
+                    setShowAccounts(false);
+                    return;
+                  }
                   setPreview(null);
                   setSelected([]);
                 }}
@@ -302,7 +335,7 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
             )}
             <Button
               variant="contained"
-              disabled={busy}
+              disabled={busy || connecting}
               endIcon={
                 preview ? <ArrowRight size={18} /> : <Search size={18} />
               }
@@ -313,6 +346,8 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
                       await window.orbit.setupPreview({ folders, gameFolders }),
                     );
                     setSelected([]);
+                  } else if (!showAccounts) {
+                    setShowAccounts(true);
                   } else {
                     await window.orbit.setupComplete({
                       previewId: preview.id,
@@ -324,7 +359,11 @@ export default function SetupWizard({ settings, onComplete, onCancel }) {
                 })
               }
             >
-              {preview ? "Guardar y abrir biblioteca" : "Buscar juegos"}
+              {showAccounts
+                ? "Guardar y abrir biblioteca"
+                : preview
+                  ? "Continuar a cuentas"
+                  : "Buscar juegos"}
             </Button>
           </div>
         </footer>

@@ -137,6 +137,7 @@ export default function App() {
   if (library && (!library.onboarding?.completedAt || setupOpen))
     return (
       <SetupWizard
+        accounts={library.accounts}
         settings={library.settings}
         onComplete={() => setSetupOpen(false)}
         onCancel={

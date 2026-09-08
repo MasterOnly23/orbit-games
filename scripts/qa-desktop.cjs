@@ -98,6 +98,23 @@ const crypto = require("node:crypto");
       false,
     );
     await page
+      .getByRole("button", { name: "Continuar a cuentas", exact: true })
+      .click();
+    await page
+      .getByRole("heading", {
+        name: "Tus cuentas, si las necesitas",
+        exact: true,
+      })
+      .waitFor();
+    assert.equal(
+      (await page.evaluate(() => window.orbit.getLibrary())).accounts.length,
+      0,
+    );
+    await page.screenshot({
+      path: path.join(output, "next-setup-accounts.png"),
+      animations: "disabled",
+    });
+    await page
       .getByRole("button", { name: "Guardar y abrir biblioteca", exact: true })
       .click();
     await page.waitForSelector(".game-grid");
@@ -208,6 +225,9 @@ const crypto = require("node:crypto");
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
     await page
       .getByRole("button", { name: "Conectar GOG", exact: true })
+      .waitFor();
+    await page
+      .getByRole("button", { name: "Conectar Epic Games", exact: true })
       .waitFor();
     await page
       .getByRole("button", { name: "Conectar Steam", exact: true })

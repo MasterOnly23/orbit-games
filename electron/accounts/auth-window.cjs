@@ -51,6 +51,10 @@ async function readProviderSession({
       },
     });
     windows.add(win);
+    if (provider.userAgentSuffix)
+      win.webContents.setUserAgent(
+        win.webContents.getUserAgent() + provider.userAgentSuffix,
+      );
     let settled = false,
       checking = false;
     const preventDownload = (event) => event.preventDefault();
@@ -137,6 +141,12 @@ async function readProviderSession({
     win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
     for (const event of ["will-navigate", "will-redirect"])
       win.webContents.on(event, (e, url) => {
+        const authorization = provider.captureAuthorization?.(url);
+        if (authorization) {
+          e.preventDefault();
+          finish(null, authorization);
+          return;
+        }
         if (!allowedNavigation(url, provider.navigationHosts))
           e.preventDefault();
       });

@@ -9,6 +9,7 @@ const {
   nativeImage,
   protocol,
   net,
+  safeStorage,
 } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -27,6 +28,8 @@ const {
 } = require("./accounts/auth-window.cjs");
 const { steam } = require("./accounts/steam.cjs");
 const { gog } = require("./accounts/gog.cjs");
+const { epic } = require("./accounts/epic.cjs");
+const { CredentialVault } = require("./accounts/vault.cjs");
 const {
   findExecutableCandidates,
   unknownCandidates,
@@ -290,13 +293,24 @@ if (locked)
         );
       });
       createWindow();
+      const vault = new CredentialVault(store.directory, safeStorage);
       const accounts = createAccountService({
         store,
         save,
         readSession: (options) =>
-          readProviderSession({ ...options, parent: win }),
-        clearSession: clearProviderSession,
-        providers: { steam, gog },
+          options.provider.connectSession
+            ? options.provider.connectSession({
+                ...options,
+                vault,
+                readAuth: () =>
+                  readProviderSession({ ...options, parent: win }),
+              })
+            : readProviderSession({ ...options, parent: win }),
+        clearSession: async (partition, id) => {
+          await clearProviderSession(partition);
+          await vault.remove(id);
+        },
+        providers: { steam, gog, epic },
       });
       handle("accounts:connect", (provider) => accounts.connect(provider));
       handle("accounts:sync", (id) => accounts.sync(id));

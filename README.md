@@ -17,9 +17,9 @@ Next no importa ni modifica el perfil, las portadas o los favoritos de Orbit act
 
 Las pruebas de escritorio usan subcarpetas nuevas de `%APPDATA%\Orbit Games Next\qa`. `ORBIT_DATA_DIR` solo admite rutas dentro del perfil de Next; se rechazan rutas externas y enlaces de directorio en ese perfil.
 
-## Primer incremento
+## Estado de la versión alfa
 
-- Asistente inicial: elegir carpetas, buscar, revisar y guardar.
+- Asistente inicial: elegir carpetas, buscar, revisar, conectar cuentas opcionales y guardar.
 - Detección local existente de plataformas, con resumen por plataforma y carpetas de instalación.
 - Carpetas de accesos `.lnk` y `.url`, incluyendo sus subcarpetas inmediatas.
 - Carpetas adicionales con ejecutables: búsqueda hasta tres niveles, 5.000 entradas y 200 candidatos por búsqueda. No se siguen enlaces de directorio. Los límites se comunican al usuario.
@@ -28,7 +28,9 @@ Las pruebas de escritorio usan subcarpetas nuevas de `%APPDATA%\Orbit Games Next
 - El asistente puede abrirse otra vez desde **Ajustes → Revisar carpetas y juegos**.
 - Las consultas de fichas en línea son opcionales.
 
-No hay conexión con cuentas todavía. La biblioteca completa de compras, los juegos accesibles por suscripción y la unificación de varias licencias de un mismo juego son trabajo posterior. Los ejecutables arbitrarios se identifican por nombre de archivo y pueden requerir corrección manual. Los nuevos ejecutables en carpetas adicionales se revisan reabriendo el asistente; no se importan automáticamente.
+Hay conectores comunitarios experimentales de Steam, GOG y Epic Games en el asistente y en Ajustes. Las conexiones con cuentas reales todavía requieren validación. No se garantiza cobertura de suscripciones o bibliotecas compartidas. Steam y GOG usan sesiones web propias; Epic guarda sus credenciales cifradas en el perfil de Next. Ninguna conexión utiliza la sesión del lanzador instalado ni requiere servidores de Orbit.
+
+Las consultas fallidas o incompletas conservan la biblioteca anterior. Desconectar elimina la sesión local de Orbit y conserva los juegos y sus ajustes; no revoca por sí mismo autorizaciones desde la web del proveedor. Los juegos manuales y los lanzadores propios pueden añadirse mediante ejecutables o accesos directos. Los archivos encontrados en carpetas adicionales se proponen en escaneos posteriores y requieren revisión; no se ejecutan ni se agregan automáticamente.
 
 ## Ejecutar y compilar
 
@@ -56,13 +58,15 @@ Conserva toda la carpeta `win-unpacked`, no solo el `.exe`. `npm run package` ge
 npm test
 npm run package:dir
 npm run test:desktop
+node scripts/qa-vault.cjs
+node scripts/qa-epic.cjs
 ```
 
 Las pruebas de dominio cubren la biblioteca original, el aislamiento de perfiles, la selección de carpetas, los límites de búsqueda y la confirmación antes de persistir. La prueba de escritorio utiliza el ejecutable de Next y un perfil vacío, recorre el asistente, elige un archivo ficticio que nunca se ejecuta, reinicia y comprueba la persistencia. No depende de que exista un juego comercial concreto ni una cantidad determinada de juegos.
 
 `output/` contiene los informes y capturas locales y queda excluido de Git. `VERIFICACION.md` describe la comprobación histórica de Orbit 1.0.0, no certifica Next. El roadmap general sigue en `ROADMAP.md`.
 
-Comprobación del 7 de septiembre de 2026: 14 pruebas aprobadas, compilación y paquete independiente generados. El recorrido de escritorio pasó tanto desde el código como desde el ejecutable empaquetado, incluyendo perfil vacío, selección de ejecutable, portada local, reinicio, reapertura del asistente y ausencia de solicitudes remotas con las fichas desactivadas. Se revisó la interfaz a 1480 y 1000 píxeles de ancho. Esto valida este incremento en el equipo de desarrollo; faltan la beta en otros equipos, la instalación NSIS y los demás criterios del MVP 1.
+Comprobación del 8 de septiembre de 2026: 30 pruebas unitarias aprobadas y recorrido de escritorio desde código, incluyendo perfil vacío, cuentas omitidas, selección de ejecutable, portada local, reinicio, descubrimiento posterior y ausencia de solicitudes remotas con las fichas desactivadas. `qa-vault.cjs` usa cifrado real de Windows con datos ficticios. `qa-epic.cjs` comprueba la integración completa con respuestas controladas; no acredita el login real de Epic. Faltan cuentas reales, otras plataformas, Windows 10, instalación y actualizaciones, beta externa y los demás criterios de `PRODUCT_PLAN.md`.
 
 ## Estructura
 
