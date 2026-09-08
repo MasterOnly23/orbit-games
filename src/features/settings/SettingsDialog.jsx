@@ -8,6 +8,7 @@ import {
   Divider,
 } from "@mui/material";
 import { FolderPlus, X, Download, Upload } from "lucide-react";
+import AccountsPanel from "../accounts/AccountsPanel";
 export default function SettingsDialog({
   open,
   onClose,
@@ -16,6 +17,7 @@ export default function SettingsDialog({
   appName,
   version,
   onSetup,
+  accounts,
 }) {
   if (!settings) return null;
   const update = (patch) => action(() => window.orbit.settings(patch));
@@ -55,6 +57,8 @@ export default function SettingsDialog({
         </p>
       </DialogTitle>
       <DialogContent>
+        <AccountsPanel accounts={accounts} />
+        <Divider />
         <div className="form-section-heading">
           <h3>Configurar la detección</h3>
           <p>

@@ -8,6 +8,7 @@ class LibraryStore {
     this.data = {
       version: 1,
       games: [],
+      accounts: [],
       settings: {
         folders: [],
         gameFolders: [],
@@ -33,17 +34,24 @@ class LibraryStore {
         settings: { ...this.data.settings, ...stored.settings },
       };
     } catch (error) {
-      if (error.code !== "ENOENT") {
+      {
         try {
           const backup = JSON.parse(
             await fs.readFile(`${this.file}.bak`, "utf8"),
           );
-          if (!Array.isArray(backup.games)) throw error;
-          this.data = { ...this.data, ...backup };
+          if (backup.version !== 1 || !Array.isArray(backup.games)) throw error;
+          this.data = {
+            ...this.data,
+            ...backup,
+            settings: { ...this.data.settings, ...backup.settings },
+          };
+          this.recoveredFromBackup = true;
           this.data.warnings = [
             "Se recuperó la copia de respaldo de la biblioteca.",
           ];
-        } catch {
+        } catch (backupError) {
+          if (error.code === "ENOENT" && backupError.code === "ENOENT")
+            return this.data;
           throw new Error(
             `No se puede abrir la biblioteca. Se conserva el archivo para recuperarlo: ${this.file}`,
           );
@@ -60,11 +68,13 @@ class LibraryStore {
         const temporary = `${this.file}.tmp`;
         await fs.writeFile(temporary, content, "utf8");
         try {
-          await fs.copyFile(this.file, `${this.file}.bak`);
+          if (!this.recoveredFromBackup)
+            await fs.copyFile(this.file, `${this.file}.bak`);
         } catch (e) {
           if (e.code !== "ENOENT") throw e;
         }
         await fs.rename(temporary, this.file);
+        this.recoveredFromBackup = false;
       });
     return this.queue;
   }

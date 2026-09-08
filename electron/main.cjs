@@ -20,6 +20,12 @@ const { matchMetadata } = require("./library/metadata.cjs");
 const { registerIpc } = require("./ipc.cjs");
 const { identity, configureRuntime } = require("./runtime.cjs");
 const { registerOnboarding } = require("./onboarding/ipc.cjs");
+const { createAccountService } = require("./accounts/service.cjs");
+const {
+  readProviderSession,
+  clearProviderSession,
+} = require("./accounts/auth-window.cjs");
+const { steam } = require("./accounts/steam.cjs");
 configureRuntime(app);
 protocol.registerSchemesAsPrivileged([
   {
@@ -269,6 +275,17 @@ if (locked)
         );
       });
       createWindow();
+      const accounts = createAccountService({
+        store,
+        save,
+        readSession: (options) =>
+          readProviderSession({ ...options, parent: win }),
+        clearSession: clearProviderSession,
+        providers: { steam },
+      });
+      handle("accounts:connect", (provider) => accounts.connect(provider));
+      handle("accounts:sync", (id) => accounts.sync(id));
+      handle("accounts:disconnect", (id) => accounts.disconnect(id));
       registerIpc({
         win,
         store,

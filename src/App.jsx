@@ -445,6 +445,7 @@ export default function App() {
         onAdded={select}
       />
       <SettingsDialog
+        accounts={library?.accounts}
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         settings={library?.settings}

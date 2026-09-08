@@ -190,6 +190,11 @@ const crypto = require("node:crypto");
         .then((src) => src.startsWith("orbit-art:")),
     );
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
+    await page.getByRole("button", { name: "Conectar Steam", exact: true }).waitFor();
+    assert.equal((await page.evaluate(() => window.orbit.getLibrary())).accounts.length, 0);
+    const unsupported = await page.evaluate(() => window.orbit.connectAccount("unsupported-provider"));
+    assert.equal(unsupported.error.code, "unsupported");
+    await page.screenshot({ path: path.join(output, "next-accounts.png"), animations: "disabled" });
     await page
       .getByRole("button", { name: "Revisar carpetas y juegos", exact: true })
       .click();

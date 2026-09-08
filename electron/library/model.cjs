@@ -62,15 +62,25 @@ function validLaunchUri(uri) {
     return /^battlenet:\/\/[a-z0-9\/_-]+$/i.test(uri);
   return true;
 }
+function sameProviderTitle(a, b) {
+  if (a.provider !== b.provider || normalize(a.name) !== normalize(b.name))
+    return false;
+  if (
+    a.providerId &&
+    b.providerId &&
+    String(a.providerId) !== String(b.providerId)
+  )
+    return false;
+  if (a.steamId && b.steamId && String(a.steamId) !== String(b.steamId))
+    return false;
+  return true;
+}
 function mergeGames(detected, previous = []) {
   const result = [];
   for (const candidate of detected) {
     // Same provider/title or exact launch identity only: keep editions and different stores separate.
     const existing = result.find(
-      (g) =>
-        g.id === candidate.id ||
-        (g.provider === candidate.provider &&
-          normalize(g.name) === normalize(candidate.name)),
+      (g) => g.id === candidate.id || sameProviderTitle(g, candidate),
     );
     if (existing) {
       if (candidate.status === "installed" && existing.status !== "installed")
@@ -92,8 +102,7 @@ function mergeGames(detected, previous = []) {
       previous.find(
         (g) =>
           g.id === candidate.id ||
-          (g.provider === candidate.provider &&
-            normalize(g.name) === normalize(candidate.name)) ||
+          sameProviderTitle(g, candidate) ||
           g.sources?.some((p) => candidate.sources.includes(p)),
       );
     result[i] = {
@@ -110,6 +119,10 @@ function mergeGames(detected, previous = []) {
       metadataCheckedAt: old?.metadataCheckedAt,
       customName: old?.customName || "",
       artworkRevision: old?.artworkRevision || null,
+      accountEntitlements:
+        old?.accountEntitlements || candidate.accountEntitlements || [],
+      platformPlaytimeMinutes: old?.platformPlaytimeMinutes,
+      remoteOnly: false,
     };
     if (old?.manual)
       Object.assign(result[i], {
@@ -129,7 +142,7 @@ function mergeGames(detected, previous = []) {
       )
     )
       continue;
-    if (old.manual) result.push(old);
+    if (old.manual || old.remoteOnly) result.push(old);
     else
       result.push({
         ...old,

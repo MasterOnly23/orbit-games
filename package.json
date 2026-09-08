@@ -25,6 +25,7 @@
       "dist/**/*",
       "electron/**/*",
       "assets/**/*",
+      "THIRD_PARTY_NOTICES.md",
       "package.json"
     ],
     "extraResources": [

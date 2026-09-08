@@ -225,3 +225,31 @@ test("atomic saves and backup recovery preserve the last valid library", async (
     await fs.rm(dir, { recursive: true, force: true });
   }
 });
+test("a missing primary library recovers its backup with new defaults and does not overwrite the valid backup with corruption", async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "orbit-backup-"));
+  try {
+    const file = path.join(dir, "library.json");
+    const backup = {
+      version: 1,
+      games: [{ id: "kept", favorite: true }],
+      settings: { autoScan: false },
+    };
+    await fs.writeFile(`${file}.bak`, JSON.stringify(backup));
+    const recovered = new LibraryStore(dir, dir);
+    await recovered.load();
+    assert.equal(recovered.data.games[0].id, "kept");
+    assert.deepEqual(recovered.data.settings.gameFolders, []);
+    assert.equal(recovered.data.settings.autoScan, false);
+    await fs.writeFile(file, "broken");
+    await recovered.save();
+    assert.deepEqual(
+      JSON.parse(await fs.readFile(`${file}.bak`, "utf8")),
+      backup,
+    );
+    const reload = new LibraryStore(dir, dir);
+    await reload.load();
+    assert.equal(reload.data.games[0].favorite, true);
+  } finally {
+    await fs.rm(dir, { recursive: true, force: true });
+  }
+});
