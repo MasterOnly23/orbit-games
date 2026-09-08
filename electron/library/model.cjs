@@ -119,6 +119,7 @@ function mergeGames(detected, previous = []) {
       metadataCheckedAt: old?.metadataCheckedAt,
       customName: old?.customName || "",
       artworkRevision: old?.artworkRevision || null,
+      launchOptions: old?.launchOptions || candidate.launchOptions,
       accountEntitlements:
         old?.accountEntitlements || candidate.accountEntitlements || [],
       platformPlaytimeMinutes: old?.platformPlaytimeMinutes,
@@ -136,21 +137,23 @@ function mergeGames(detected, previous = []) {
   }
   for (const old of previous) {
     if (result.some((g) => g.id === old.id)) continue;
+    if (old.manual || old.remoteOnly) {
+      result.push(old);
+      continue;
+    }
     if (
       result.some((g) =>
         old.sources?.some((source) => g.sources.includes(source)),
       )
     )
       continue;
-    if (old.manual || old.remoteOnly) result.push(old);
-    else
-      result.push({
-        ...old,
-        status: "unknown",
-        statusReason:
-          "La fuente ya no aparece en el escaneo. Revisa el acceso o la unidad.",
-        sources: [],
-      });
+    result.push({
+      ...old,
+      status: "unknown",
+      statusReason:
+        "La fuente ya no aparece en el escaneo. Revisa el acceso o la unidad.",
+      sources: [],
+    });
   }
   return result.sort((a, b) => a.name.localeCompare(b.name, "es"));
 }

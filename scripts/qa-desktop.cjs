@@ -154,7 +154,16 @@ const crypto = require("node:crypto");
           (g) => g.name === "Orbit QA Adventure",
         )?.artworkRevision,
     );
-    await page.getByRole("button", { name: "Cancelar", exact: true }).click();
+    await page
+      .getByText("Opciones del ejecutable o lanzador propio", { exact: true })
+      .click();
+    await page
+      .getByLabel("Argumentos de inicio", { exact: true })
+      .fill("--profile\nQA profile with spaces");
+    await page.getByLabel("Carpeta de trabajo", { exact: true }).fill(fixture);
+    await page
+      .getByRole("button", { name: "Guardar cambios", exact: true })
+      .click();
     await page.waitForFunction(
       () => document.querySelector(".hero-art img")?.naturalWidth > 0,
     );
@@ -180,6 +189,34 @@ const crypto = require("node:crypto");
       0,
     );
     const restored = await page.evaluate(() => window.orbit.getLibrary());
+    assert.deepEqual(
+      restored.games.find((g) => g.name === "Orbit QA Adventure").launchOptions,
+      {
+        args: ["--profile", "QA profile with spaces"],
+        workingDirectory: fixture,
+      },
+    );
+    const variantIds = await page.evaluate(
+      async (target) => {
+        const first = await window.orbit.addGame({
+          name: "QA variant upper",
+          target,
+          launchOptions: { args: ["A"], workingDirectory: "" },
+        });
+        const second = await window.orbit.addGame({
+          name: "QA variant lower",
+          target,
+          launchOptions: { args: ["a"], workingDirectory: "" },
+        });
+        return [first, second];
+      },
+      path.join(fixture, "Orbit QA Adventure.exe"),
+    );
+    assert.notEqual(
+      variantIds[0],
+      variantIds[1],
+      "Arguments remain case sensitive when identifying launcher variants",
+    );
     assert.ok(
       restored.games.some((g) => g.name === "Orbit QA Adventure" && g.manual),
     );

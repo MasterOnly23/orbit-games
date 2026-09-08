@@ -8,6 +8,9 @@ const {
   getMetadata,
 } = require("./library/metadata.cjs");
 const { launchGame } = require("./platform/launch.cjs");
+const { validateLaunchOptions } = require("./platform/launch-options.cjs");
+const { idFor } = require("./library/model.cjs");
+const { createHash } = require("node:crypto");
 function registerIpc({
   win,
   store,
@@ -25,26 +28,27 @@ function registerIpc({
   handle("library:scan", scan);
   handle("game:update", async (id, patch) => {
     const g = store.getGame(id);
+    const changes = {};
     if (!patch || typeof patch !== "object")
       throw new Error("Cambios no válidos.");
     for (const key of ["favorite", "hidden"])
-      if (typeof patch[key] === "boolean") g[key] = patch[key];
+      if (typeof patch[key] === "boolean") changes[key] = patch[key];
     for (const key of ["notes", "customName"])
       if (typeof patch[key] === "string")
-        g[key] = patch[key].slice(0, key === "notes" ? 5000 : 200);
+        changes[key] = patch[key].slice(0, key === "notes" ? 5000 : 200);
     if (
       ["auto", "installed", "uninstalled", "unknown"].includes(
         patch.statusOverride,
       )
     )
-      g.statusOverride = patch.statusOverride;
+      changes.statusOverride = patch.statusOverride;
     if (typeof patch.target === "string" && patch.target) {
       const replacement = await inspectManual(
         patch.target,
-        g.customName || g.name,
+        changes.customName || g.customName || g.name,
         inventoryScript,
       );
-      Object.assign(g, {
+      Object.assign(changes, {
         launch: replacement.launch,
         targetExecutable: replacement.targetExecutable,
         installPath: replacement.installPath,
@@ -53,6 +57,18 @@ function registerIpc({
         manual: true,
       });
     }
+    if (patch.launchOptions !== undefined) {
+      changes.launchOptions = await validateLaunchOptions(
+        changes.launch || g.launch,
+        patch.launchOptions,
+      );
+      if (
+        changes.launchOptions.args.length ||
+        changes.launchOptions.workingDirectory
+      )
+        changes.manual = true;
+    }
+    Object.assign(g, changes);
     await save();
     return snapshot();
   });
@@ -66,9 +82,20 @@ function registerIpc({
         .slice(0, 200),
       inventoryScript,
     );
+    g.launchOptions = await validateLaunchOptions(
+      g.launch,
+      payload.launchOptions || { args: [], workingDirectory: "" },
+    );
+    if (g.launchOptions.args.length || g.launchOptions.workingDirectory)
+      g.id = idFor(
+        `manual:${g.launch.target}:${createHash("sha256").update(JSON.stringify(g.launchOptions)).digest("hex")}`,
+      );
     const existing = store.data.games.find(
       (old) =>
-        old.launch?.target.toLowerCase() === g.launch.target.toLowerCase(),
+        old.launch?.target.toLowerCase() === g.launch.target.toLowerCase() &&
+        JSON.stringify(
+          old.launchOptions || { args: [], workingDirectory: "" },
+        ) === JSON.stringify(g.launchOptions),
     );
     if (existing) {
       existing.hidden = false;

@@ -32,6 +32,8 @@ Hay conectores comunitarios experimentales de Steam, GOG y Epic Games en el asis
 
 Las consultas fallidas o incompletas conservan la biblioteca anterior. Desconectar elimina la sesión local de Orbit y conserva los juegos y sus ajustes; no revoca por sí mismo autorizaciones desde la web del proveedor. Los juegos manuales y los lanzadores propios pueden añadirse mediante ejecutables o accesos directos. Los archivos encontrados en carpetas adicionales se proponen en escaneos posteriores y requieren revisión; no se ejecutan ni se agregan automáticamente.
 
+En el código posterior a alfa 2, **Añadir/Editar juego → Opciones del ejecutable o lanzador propio** permite argumentos (uno por línea) y carpeta de trabajo para `.exe`. No se interpretan comandos de shell. Los accesos `.lnk` conservan los argumentos definidos en Windows. Se admiten varias entradas con el mismo ejecutable y opciones distintas. Si un ejecutable requiere elevación con argumentos, configura un acceso directo de Windows con esos parámetros y permisos.
+
 ## Ejecutar y compilar
 
 Requiere Windows y Node.js 24 compatible con las dependencias fijadas.

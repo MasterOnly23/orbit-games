@@ -2,6 +2,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { exists, read } = require("../library/scanner.cjs");
 const { validLaunchUri, effectiveStatus } = require("../library/model.cjs");
+const { validateLaunchOptions } = require("./launch-options.cjs");
 function spawnFile(exe, args, cwd) {
   return new Promise((resolve, reject) => {
     const child = spawn(exe, args, {
@@ -67,12 +68,24 @@ async function launchGame(game, shell) {
     return;
   }
   if (/\.exe$/i.test(launch.target)) {
+    const options = await validateLaunchOptions(
+      launch,
+      game.launchOptions || { args: [], workingDirectory: "" },
+    );
     try {
-      await spawnFile(launch.target, [], path.dirname(launch.target));
+      await spawnFile(
+        launch.target,
+        options.args,
+        options.workingDirectory || path.dirname(launch.target),
+      );
       return;
     } catch (error) {
       // Windows ShellExecute can show the standard elevation prompt for an executable that requires it.
       if (!["EACCES", "EPERM"].includes(error.code)) throw error;
+      if (options.args.length || options.workingDirectory)
+        throw new Error(
+          "Windows requiere permisos adicionales para este lanzador. Crea un acceso directo con sus argumentos y permisos para conservar la configuración.",
+        );
     }
   }
   const error = await shell.openPath(launch.target);

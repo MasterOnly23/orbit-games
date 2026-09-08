@@ -39,6 +39,8 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
         target: "",
         notes: game?.notes || "",
         statusOverride: game?.statusOverride || "auto",
+        launchArguments: (game?.launchOptions?.args || []).join("\n"),
+        workingDirectory: game?.launchOptions?.workingDirectory || "",
       });
       setQuery(game ? nameOf(game) : "");
       setResults(null);
@@ -48,17 +50,25 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
     setBusy(true);
     const done = await action(
       async () => {
+        const launchOptions = {
+          args: (values.launchArguments || "")
+            .split(/\r?\n/)
+            .filter((line) => line.length > 0),
+          workingDirectory: values.workingDirectory || "",
+        };
         if (game) {
           await window.orbit.updateGame(game.id, {
             customName: values.name,
             notes: values.notes,
             statusOverride: values.statusOverride,
             target: values.target,
+            launchOptions,
           });
         } else {
           const id = await window.orbit.addGame({
             name: values.name,
             target: values.target,
+            launchOptions,
           });
           onAdded(id);
         }
@@ -140,6 +150,39 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
               <FolderOpen size={19} />
             </Button>
           </div>
+          <details>
+            <summary>Opciones del ejecutable o lanzador propio</summary>
+            <p className="muted">
+              Para archivos .exe. Deja estos campos vacíos si el juego no
+              necesita una configuración especial.
+            </p>
+            <TextField
+              label="Argumentos de inicio"
+              fullWidth
+              multiline
+              minRows={2}
+              helperText="Un argumento por línea. Las rutas con espacios van en una sola línea, sin comillas adicionales."
+              {...register("launchArguments")}
+            />
+            <div className="path-field">
+              <TextField
+                label="Carpeta de trabajo"
+                fullWidth
+                {...register("workingDirectory")}
+                helperText="Vacía: se usa la carpeta del ejecutable."
+              />
+              <Button
+                variant="outlined"
+                aria-label="Elegir carpeta de trabajo"
+                onClick={async () => {
+                  const folder = await action(() => window.orbit.pickFolder());
+                  if (folder) setValue("workingDirectory", folder);
+                }}
+              >
+                <FolderOpen size={19} />
+              </Button>
+            </div>
+          </details>
           {game && (
             <>
               <TextField
