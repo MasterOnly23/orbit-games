@@ -314,6 +314,7 @@ if (locked)
         providers: { steam, gog, epic, humble },
       });
       handle("accounts:connect", (provider) => accounts.connect(provider));
+      handle("accounts:cancel", () => accounts.cancel());
       handle("accounts:sync", (id) => accounts.sync(id));
       handle("accounts:disconnect", (id) => accounts.disconnect(id));
       registerIpc({

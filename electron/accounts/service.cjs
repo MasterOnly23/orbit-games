@@ -19,6 +19,7 @@ function createAccountService({
   providers,
 }) {
   let busy = false;
+  let activeController = null;
   const run = async (operation) => {
     if (busy)
       return {
@@ -30,11 +31,24 @@ function createAccountService({
         },
       };
     busy = true;
+    const controller = new AbortController();
+    activeController = controller;
     try {
-      return { ok: true, ...(await operation()) };
+      return { ok: true, ...(await operation(controller.signal)) };
     } catch (error) {
-      return { ok: false, error: publicError(error) };
+      return {
+        ok: false,
+        error: publicError(
+          controller.signal.aborted
+            ? new ProviderError(
+                "cancelled",
+                "Operación cancelada. Se conserva tu biblioteca.",
+              )
+            : error,
+        ),
+      };
     } finally {
+      activeController = null;
       busy = false;
     }
   };
@@ -48,8 +62,13 @@ function createAccountService({
     return account;
   };
   return {
+    cancel: () => {
+      if (!activeController) return false;
+      activeController.abort();
+      return true;
+    },
     connect: (providerId) =>
-      run(async () => {
+      run(async (signal) => {
         const provider =
           Object.hasOwn(providers, providerId) && providers[providerId];
         if (!provider)
@@ -61,6 +80,7 @@ function createAccountService({
         let retained = false;
         try {
           const credentials = await readSession({
+            signal,
             id,
             partition: partitionFor(id),
             provider,
@@ -78,6 +98,7 @@ function createAccountService({
               "Esta cuenta ya está agregada. Usa Sincronizar o desconéctala antes de volver a conectarla.",
             );
           const catalog = await provider.fetchLibrary(credentials, {
+            signal,
             fetchImpl: credentials.fetchImpl,
           });
           const account = {
@@ -93,6 +114,8 @@ function createAccountService({
             lastSuccess: new Date().toISOString(),
           };
           const games = mergeAccountLibrary(store.data.games, account, catalog);
+          signal.throwIfAborted();
+          activeController = null;
           store.data.games = games;
           store.data.accounts.push(account);
           // Keep the session if disk persistence fails: retry must not leave an in-memory account without its session.
@@ -105,11 +128,12 @@ function createAccountService({
         }
       }),
     sync: (id) =>
-      run(async () => {
+      run(async (signal) => {
         const account = find(id),
           provider = providers[account.providerId];
         try {
           const credentials = await readSession({
+            signal,
             id,
             partition: partitionFor(id),
             provider,
@@ -121,8 +145,11 @@ function createAccountService({
               "La sesión corresponde a otra cuenta. Desconéctala y vuelve a conectarla.",
             );
           const catalog = await provider.fetchLibrary(credentials, {
+            signal,
             fetchImpl: credentials.fetchImpl,
           });
+          signal.throwIfAborted();
+          activeController = null;
           store.data.games = mergeAccountLibrary(
             store.data.games,
             account,
@@ -134,6 +161,7 @@ function createAccountService({
           await save();
           return { count: catalog.games.length };
         } catch (error) {
+          if (signal.aborted) throw error;
           account.status = "error";
           account.error = publicError(error);
           await save();
@@ -142,6 +170,7 @@ function createAccountService({
       }),
     disconnect: (id) =>
       run(async () => {
+        activeController = null;
         find(id);
         await clearSession(partitionFor(id), id);
         store.data.accounts = store.data.accounts.filter((a) => a.id !== id);

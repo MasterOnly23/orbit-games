@@ -89,6 +89,7 @@ async function readProviderSession({
         // There is no Orbit preload or app IPC bridge in this remote window.
         const value = provider.readSession
           ? await provider.readSession({
+              signal,
               fetchImpl: isolated.fetch.bind(isolated),
             })
           : await win.webContents.executeJavaScript(provider.readSessionScript);

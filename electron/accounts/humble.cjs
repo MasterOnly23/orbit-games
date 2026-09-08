@@ -86,7 +86,7 @@ const humble = {
     value.orderKeys.every(
       (key) => typeof key === "string" && /^[a-zA-Z0-9_-]{1,256}$/.test(key),
     ),
-  async fetchLibrary(credentials, { fetchImpl } = {}) {
+  async fetchLibrary(credentials, { fetchImpl, signal } = {}) {
     if (!humble.validSession(credentials) || !fetchImpl)
       throw new ProviderError(
         "auth-required",
@@ -105,7 +105,9 @@ const humble = {
         const response = await fetchImpl(url.href, {
           credentials: "include",
           redirect: "error",
-          signal: AbortSignal.timeout(20000),
+          signal: signal
+            ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
+            : AbortSignal.timeout(20000),
         });
         if ([401, 403].includes(response.status))
           throw new ProviderError(

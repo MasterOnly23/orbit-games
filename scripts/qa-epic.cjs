@@ -123,6 +123,34 @@ const fs = require("node:fs/promises");
     assert.equal(library.accounts.length, 0);
     assert.equal(library.games[0].accountEntitlements[0].state, "disconnected");
     await assert.rejects(fs.access(credentialFile));
+    await application.evaluate(() => {
+      let started;
+      globalThis.orbitQaRequestStarted = new Promise((resolve) => {
+        started = resolve;
+      });
+      globalThis.fetch = async (_url, options) =>
+        new Promise((_resolve, reject) => {
+          started(true);
+          options.signal.addEventListener(
+            "abort",
+            () => reject(new Error("Synthetic request aborted")),
+            { once: true },
+          );
+        });
+    });
+    await page.evaluate(() => {
+      window.orbitQaPending = window.orbit.connectAccount("epic");
+    });
+    await application.evaluate(() => globalThis.orbitQaRequestStarted);
+    assert.equal(
+      await page.evaluate(() => window.orbit.cancelAccounts()),
+      true,
+    );
+    const cancelled = await page.evaluate(() => window.orbitQaPending);
+    assert.equal(cancelled.error.code, "cancelled");
+    const afterCancel = await page.evaluate(() => window.orbit.getLibrary());
+    assert.equal(afterCancel.accounts.length, 0);
+    assert.deepEqual(afterCancel.games, library.games);
     console.log(
       JSON.stringify({
         success: true,
@@ -131,6 +159,7 @@ const fs = require("node:fs/promises");
         noRendererSecrets: true,
         encryptedStorage: true,
         isolatedAuthWindow: true,
+        networkCancellation: true,
       }),
     );
   } finally {

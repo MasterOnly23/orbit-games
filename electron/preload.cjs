@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("orbit", {
+  cancelAccounts: () => ipcRenderer.invoke("accounts:cancel"),
   connectAccount: (provider) =>
     ipcRenderer.invoke("accounts:connect", provider),
   syncAccount: (id) => ipcRenderer.invoke("accounts:sync", id),

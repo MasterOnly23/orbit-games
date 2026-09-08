@@ -24,12 +24,14 @@ function captureAuthorization(address) {
     return null;
   }
 }
-async function epicRequest(url, options = {}, fetchImpl = fetch) {
+async function epicRequest(url, options = {}, fetchImpl = fetch, signal) {
   try {
     const response = await fetchImpl(url, {
       ...options,
       redirect: "error",
-      signal: AbortSignal.timeout(20000),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
+        : AbortSignal.timeout(20000),
     });
     if ([400, 401, 403].includes(response.status))
       throw new ProviderError(
@@ -119,6 +121,7 @@ const epic = {
     readAuth,
     fetchImpl = fetch,
     now = Date.now(),
+    signal,
   }) {
     let previous = null,
       grant;
@@ -157,6 +160,7 @@ const epic = {
         body: new URLSearchParams({ ...grant, token_type: "eg1" }).toString(),
       },
       fetchImpl,
+      signal,
     );
     const credentials = credentialsFrom(response);
     if (previous && previous.externalId !== credentials.externalId)
@@ -167,7 +171,7 @@ const epic = {
     await vault.write(id, credentials);
     return credentials;
   },
-  async fetchLibrary(credentials, { fetchImpl = fetch } = {}) {
+  async fetchLibrary(credentials, { fetchImpl = fetch, signal } = {}) {
     if (!credentials?.accessToken)
       throw new ProviderError("auth-required", "Vuelve a conectar Epic.");
     return fetchEpicCatalog((url) =>
@@ -175,6 +179,7 @@ const epic = {
         url,
         { headers: { Authorization: `bearer ${credentials.accessToken}` } },
         fetchImpl,
+        signal,
       ),
     );
   },

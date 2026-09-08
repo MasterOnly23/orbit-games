@@ -1,11 +1,13 @@
 const { ProviderError } = require("./provider-error.cjs");
 
-async function requestJson(fetchImpl, url) {
+async function requestJson(fetchImpl, url, signal) {
   try {
     const response = await fetchImpl(url, {
       credentials: "include",
       redirect: "error",
-      signal: AbortSignal.timeout(20000),
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(20000)])
+        : AbortSignal.timeout(20000),
     });
     if ([401, 403].includes(response.status))
       throw new ProviderError(
@@ -66,17 +68,18 @@ const gog = {
     /^\d+$/.test(value?.externalId || "") &&
     typeof value.displayName === "string" &&
     value.displayName.length > 0,
-  async readSession({ fetchImpl }) {
+  async readSession({ fetchImpl, signal }) {
     const info = await requestJson(
       fetchImpl,
       "https://menu.gog.com/v1/account/basic",
+      signal,
     );
     // Whitelist identity fields; the response may also contain access tokens that Orbit does not need.
     return info.isLoggedIn
       ? { externalId: String(info.userId), displayName: info.username }
       : null;
   },
-  async fetchLibrary(credentials, { fetchImpl } = {}) {
+  async fetchLibrary(credentials, { fetchImpl, signal } = {}) {
     if (!gog.validSession(credentials) || !fetchImpl)
       throw new ProviderError(
         "auth-required",
@@ -90,6 +93,7 @@ const gog = {
       const data = await requestJson(
         fetchImpl,
         `https://www.gog.com/u/${encodeURIComponent(credentials.displayName)}/games/stats?sort=recent_playtime&order=desc&page=${page}`,
+        signal,
       );
       if (
         !Number.isInteger(data.pages) ||

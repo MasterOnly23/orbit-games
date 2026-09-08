@@ -13,7 +13,10 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
       setMessage(
         result.ok
           ? { severity: "success", text: success }
-          : { severity: "error", text: result.error.message },
+          : {
+              severity: result.error.code === "cancelled" ? "info" : "error",
+              text: result.error.message,
+            },
       );
     } catch {
       setMessage({
@@ -107,6 +110,28 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
           {busy ? "Procesando…" : `Conectar ${provider.name}`}
         </Button>
       ))}
+      <Typography variant="caption" color="text.secondary">
+        {busy && (
+          <Button
+            onClick={async () => {
+              try {
+                if (!(await window.orbit.cancelAccounts()))
+                  setMessage({
+                    severity: "info",
+                    text: "La operación ya está finalizando.",
+                  });
+              } catch {
+                setMessage({
+                  severity: "error",
+                  text: "No se pudo solicitar la cancelación.",
+                });
+              }
+            }}
+          >
+            Cancelar operación
+          </Button>
+        )}
+      </Typography>
       <Typography variant="caption" color="text.secondary">
         Humble importa descargas para Windows y referencias de claves para otras
         tiendas. No muestra, guarda ni activa códigos de canje. La conexión se
