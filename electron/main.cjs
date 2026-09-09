@@ -1,3 +1,4 @@
+const { createItchProvider } = require("./accounts/itch.cjs");
 const { artworkName } = require("./library/backup.cjs");
 const {
   app,
@@ -300,6 +301,15 @@ if (locked)
       });
       createWindow();
       const vault = new CredentialVault(store.directory, safeStorage);
+      const itch = createItchProvider(process.env.ORBIT_ITCH_CLIENT_ID);
+      const providers = {
+        steam,
+        gog,
+        epic,
+        humble,
+        ubisoft,
+        ...(itch ? { itch } : {}),
+      };
       const accounts = createAccountService({
         store,
         save,
@@ -308,16 +318,22 @@ if (locked)
             ? options.provider.connectSession({
                 ...options,
                 vault,
-                readAuth: () =>
-                  readProviderSession({ ...options, parent: win }),
+                readAuth: (provider = options.provider) =>
+                  readProviderSession({ ...options, provider, parent: win }),
               })
             : readProviderSession({ ...options, parent: win }),
         clearSession: async (partition, id) => {
           await clearProviderSession(partition);
           await vault.remove(id);
         },
-        providers: { steam, gog, epic, humble, ubisoft },
+        providers,
       });
+      handle("accounts:providers", () =>
+        Object.values(providers).map((provider) => ({
+          id: provider.id,
+          name: provider.name === "Ubisoft" ? "Ubisoft Connect" : provider.name,
+        })),
+      );
       handle("accounts:connect", (provider) => accounts.connect(provider));
       handle("accounts:cancel", () => accounts.cancel());
       handle("accounts:sync", (id) => accounts.sync(id));

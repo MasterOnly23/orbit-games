@@ -52,9 +52,9 @@ function createAccountService({
       busy = false;
     }
   };
-  const find = (id) => {
+  const find = (id, requireProvider = true) => {
     const account = store.data.accounts.find((a) => a.id === id);
-    if (!account || !providers[account.providerId])
+    if (!account || (requireProvider && !providers[account.providerId]))
       throw new ProviderError(
         "invalid-account",
         "La cuenta ya no está disponible.",
@@ -171,7 +171,7 @@ function createAccountService({
     disconnect: (id) =>
       run(async () => {
         activeController = null;
-        find(id);
+        find(id, false);
         await clearSession(partitionFor(id), id);
         store.data.accounts = store.data.accounts.filter((a) => a.id !== id);
         store.data.games = disconnectAccountLibrary(store.data.games, id);

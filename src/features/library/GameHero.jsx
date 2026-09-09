@@ -30,6 +30,7 @@ export default function GameHero({
     "Ubisoft",
     "Battle.net",
     "Humble Bundle",
+    "itch.io",
     "GOG",
   ].includes(game.provider);
   return (
@@ -78,7 +79,7 @@ export default function GameHero({
               ? "Abriendo…"
               : status === "uninstalled"
                 ? canOpenLauncher
-                  ? ["Humble Bundle", "GOG"].includes(game.provider)
+                  ? ["Humble Bundle", "GOG", "itch.io"].includes(game.provider)
                     ? "Ver biblioteca web"
                     : "Abrir lanzador"
                   : "Actualizar ruta"

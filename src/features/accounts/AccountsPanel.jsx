@@ -1,7 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Button, Stack, Typography } from "@mui/material";
 
 export default function AccountsPanel({ accounts = [], onBusyChange }) {
+  const [providers, setProviders] = useState([]);
+  useEffect(() => {
+    let active = true;
+    window.orbit
+      .accountProviders()
+      .then((items) => {
+        if (active) setProviders(items);
+      })
+      .catch(() => {
+        if (active)
+          setMessage({
+            severity: "error",
+            text: "No se pudieron cargar las conexiones disponibles. Cierra y vuelve a abrir Ajustes.",
+          });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState(null);
   const run = async (operation, success) => {
@@ -37,9 +56,10 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
         una sesión propia en este equipo.
       </Typography>
       <Alert severity="info">
-        Conectores comunitarios experimentales. Las plataformas pueden cambiar
-        su funcionamiento; las conexiones reales todavía están en validación. No
-        se garantiza juegos compartidos por otras cuentas.
+        Conexiones experimentales mediante APIs y conectores comunitarios. Las
+        plataformas pueden cambiar su funcionamiento; las conexiones reales
+        todavía están en validación. No se garantiza juegos compartidos por
+        otras cuentas.
       </Alert>
       {accounts.map((account) => (
         <Stack
@@ -90,13 +110,7 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
           </Stack>
         </Stack>
       ))}
-      {[
-        { id: "steam", name: "Steam" },
-        { id: "gog", name: "GOG" },
-        { id: "epic", name: "Epic Games" },
-        { id: "humble", name: "Humble Bundle" },
-        { id: "ubisoft", name: "Ubisoft Connect" },
-      ].map((provider) => (
+      {providers.map((provider) => (
         <Button
           key={provider.id}
           variant="outlined"

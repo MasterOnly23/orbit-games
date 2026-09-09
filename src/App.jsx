@@ -129,7 +129,7 @@ export default function App() {
           ? window.orbit.openLauncher(selectedGame.id)
           : window.orbit.launch(selectedGame.id),
       statusOf(selectedGame) === "uninstalled"
-        ? ["Humble Bundle", "GOG"].includes(selectedGame.provider)
+        ? ["Humble Bundle", "GOG", "itch.io"].includes(selectedGame.provider)
           ? "Biblioteca web abierta"
           : "Lanzador abierto"
         : `Inicio solicitado: ${nameOf(selectedGame)}`,

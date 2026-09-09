@@ -100,3 +100,22 @@ test("accounts persist only metadata, preserve games on failure and clear their 
   assert.ok(cleared.includes(`persist:orbit-account-${id}`));
   assert.equal((await service.connect("__proto__")).error.code, "unsupported");
 });
+
+test("a saved account can be disconnected even when its connector is no longer configured", async () => {
+  const id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const store = { data: { games: [], accounts: [{ id, providerId: "itch" }] } };
+  const cleared = [];
+  const service = createAccountService({
+    store,
+    providers: {},
+    save: async () => {},
+    readSession: async () => {
+      throw new Error("Must not authenticate");
+    },
+    clearSession: async (_partition, accountId) => cleared.push(accountId),
+  });
+  assert.equal((await service.sync(id)).ok, false);
+  assert.equal((await service.disconnect(id)).ok, true);
+  assert.deepEqual(cleared, [id]);
+  assert.equal(store.data.accounts.length, 0);
+});

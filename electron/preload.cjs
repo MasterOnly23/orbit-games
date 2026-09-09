@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld("orbit", {
   chooseArtwork: (id) => ipcRenderer.invoke("artwork:choose", id),
   clearArtwork: (id) => ipcRenderer.invoke("artwork:clear", id),
   openSource: (id) => ipcRenderer.invoke("metadata:source", id),
+  accountProviders: () => ipcRenderer.invoke("accounts:providers"),
   exportLibrary: () => ipcRenderer.invoke("library:export"),
   importLibrary: () => ipcRenderer.invoke("library:import"),
   window: (action) => ipcRenderer.invoke("window:action", action),

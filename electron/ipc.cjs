@@ -140,6 +140,7 @@ function registerIpc({
       "Battle.net": "battlenet://",
       "Humble Bundle": "https://www.humblebundle.com/home/library",
       GOG: "https://www.gog.com/account/",
+      "itch.io": "https://itch.io/my-purchases",
     };
     const uri = uris[g.provider];
     if (!uri)
