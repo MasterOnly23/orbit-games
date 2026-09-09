@@ -158,6 +158,28 @@ export default function SettingsDialog({
           </Button>
         </div>
         <p className="settings-footer">
+          <strong>Ayuda para resolver problemas</strong>
+          <br />
+          El diagnóstico incluye versiones, recuentos y estado de conexiones. No
+          incluye nombres de juegos o cuentas, rutas, notas ni sesiones. Se
+          guarda en tu PC; tú decides si lo compartes.
+        </p>
+        <Button
+          color="inherit"
+          startIcon={<Download size={17} />}
+          onClick={() =>
+            action(
+              () => window.orbit.exportDiagnostics(),
+              (result) =>
+                result
+                  ? "Diagnóstico guardado en tu PC"
+                  : "Exportación cancelada",
+            )
+          }
+        >
+          Exportar diagnóstico
+        </Button>
+        <p className="settings-footer">
           {appName} · {version}
           <br />
           Steam, EA, Xbox y otras marcas pertenecen a sus respectivos

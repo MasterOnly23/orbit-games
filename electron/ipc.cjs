@@ -12,6 +12,8 @@ const { validateLaunchOptions } = require("./platform/launch-options.cjs");
 const { idFor } = require("./library/model.cjs");
 const { createHash } = require("node:crypto");
 const playStatuses = require("./library/play-status.json");
+const { createDiagnostics } = require("./library/diagnostics.cjs");
+const os = require("node:os");
 function playStatus(value = "none") {
   if (typeof value !== "string" || !Object.hasOwn(playStatuses, value))
     throw new Error("Selecciona un estado de progreso válido.");
@@ -37,6 +39,28 @@ function registerIpc({
   inventoryScript,
 }) {
   handle("library:get", () => snapshot());
+  handle("diagnostics:export", async () => {
+    const result = await dialog.showSaveDialog(win, {
+      title: "Guardar diagnóstico de Orbit Next",
+      defaultPath: "Orbit Next - diagnostico.json",
+      filters: [{ name: "Diagnóstico JSON", extensions: ["json"] }],
+    });
+    if (result.canceled) return false;
+    const diagnostic = createDiagnostics(store.data, {
+      version: app.getVersion(),
+      electron: process.versions.electron,
+      packaged: app.isPackaged,
+      platform: process.platform,
+      architecture: process.arch,
+      release: os.release(),
+    });
+    await fsp.writeFile(
+      result.filePath,
+      JSON.stringify(diagnostic, null, 2),
+      "utf8",
+    );
+    return true;
+  });
   handle("library:scan", scan);
   handle("game:update", async (id, patch) => {
     const g = store.getGame(id);

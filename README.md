@@ -33,6 +33,8 @@ Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No r
 
 ## Funciones disponibles
 
+El código posterior al paquete alfa 3 incorpora **Ajustes → Exportar diagnóstico**. Guarda un JSON local con versiones, recuentos, estado de conexiones y códigos de error. No incluye nombres, rutas, notas, imágenes ni credenciales, y no lo envía automáticamente. No es un respaldo de la biblioteca.
+
 El código posterior al paquete alfa 3 añade **Detener búsqueda** al asistente: permite cancelar, corregir carpetas y reintentar sin guardar resultados. El guardado final debe terminar. Los cambios de paso llevan el foco al título para navegación por teclado.
 
 - Asistente: carpetas, revisión de candidatos, cuentas opcionales y guardado. Se puede repetir desde Ajustes.

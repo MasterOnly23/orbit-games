@@ -41,7 +41,7 @@ Ampliación explícita del usuario: agregar todas las conexiones viables y admit
 | ART | Fichas y portadas | Proveedor/atribución, caché persistente, recuperación, elección manual y funcionamiento sin red | Parcial |
 | AUTH | Protección de cuentas | Almacenamiento protegido, límites de navegación, expiración y errores saneados; verificación de ausencia de secretos en IPC/logs/exportación | Pendiente |
 | UX | Uso autónomo y accesible | Teclado, escalados, estados vacíos/errores/carga, cancelación de escaneo, idioma/región configurable y mensajes accionables | Parcial |
-| OPS | Diagnóstico y soporte | Informe exportable sin secretos, versiones de conectores, últimas sincronizaciones, ayuda y canal de incidencias | Pendiente |
+| OPS | Diagnóstico y soporte | Informe exportable sin secretos, versiones de conectores, últimas sincronizaciones, ayuda y canal de incidencias | Parcial: diagnóstico local agregado |
 | DIST | Distribución pública | Instalación limpia por usuario estándar, actualización preservando datos, desinstalación sin pérdida inesperada, artefactos identificados y mecanismo de confianza/firma | Pendiente |
 | RIGHTS | Condiciones de distribución | Licencias y avisos de dependencias/conectores/contenido, política de privacidad coherente con los flujos reales | Pendiente |
 | RELEASE | Candidato público validado | Matriz real en sistemas objetivo y cuentas de prueba, sin bloqueos críticos; documentación y paquete correspondiente al commit verificado | Pendiente |
@@ -53,6 +53,8 @@ Steam, Epic Games, GOG, Xbox/Microsoft Store, EA app, Ubisoft Connect, Battle.ne
 Para cada plataforma: separar detección local, consulta de biblioteca, autenticación, inicio/instalación mediante lanzador, metadatos y soporte de suscripciones. Si una capacidad no es viable, registrar la evidencia y ofrecer la capacidad local o importación explícita correspondiente; no presentar ese sustituto como conexión de cuenta terminada.
 
 ## Secuencia de trabajo
+
+Diagnóstico posterior a alfa 3: exportación explícita desde Ajustes con versiones de aplicación/Electron/sistema, arquitectura, recuentos de biblioteca y carpetas, estado de configuración y conexiones agrupadas con códigos de error permitidos y última sincronización correcta. Excluye nombres de juegos/cuentas, IDs, rutas, notas, imágenes, credenciales y mensajes/logs completos; no envía datos. 59 pruebas y compilación pasan. QA desde código verifica exportación y cancelación en la interfaz, contenido sin datos privados de prueba y biblioteca intacta. Faltan versiones individuales de conectores, ayuda contextual y canal de soporte; OPS continúa parcial. No incluido en el paquete alfa 3 existente.
 
 Asistente posterior a alfa 3: botón Detener búsqueda, señal de cancelación hasta el inventario PowerShell y las lecturas del descubrimiento, descarte de resultados tardíos y reintento sin guardar juegos. El guardado final no se interrumpe. Las operaciones de lectura de disco que no ofrecen cancelación pueden terminar en segundo plano; sus resultados se descartan. Cambio de paso devuelve desplazamiento y foco al título. 57 pruebas pasan, incluido fin del proceso PowerShell propio y rechazo de resultados tardíos. QA de escritorio desde código verifica cancelación con lectura controlada, biblioteca intacta y reintento. La cancelación del escaneo general fuera del asistente sigue pendiente; no está incluido en el paquete alfa 3 ya generado.
 

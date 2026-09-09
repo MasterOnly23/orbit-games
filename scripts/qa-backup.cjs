@@ -121,6 +121,49 @@ const { LibraryStore } = require("../electron/library/store.cjs");
       ),
     );
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
+    if (!process.env.ORBIT_TEST_EXE) {
+      const diagnosticFile = path.join(root, "diagnostic.json");
+      await application.evaluate(({ dialog }) => {
+        dialog.showSaveDialog = async () => ({ canceled: true });
+      });
+      await page
+        .getByRole("button", { name: "Exportar diagnóstico", exact: true })
+        .click();
+      await page.getByText("Exportación cancelada", { exact: true }).waitFor();
+      await assert.rejects(fs.access(diagnosticFile));
+      await application.evaluate(({ dialog }, file) => {
+        dialog.showSaveDialog = async () => ({
+          canceled: false,
+          filePath: file,
+        });
+      }, diagnosticFile);
+      await page
+        .getByRole("button", { name: "Exportar diagnóstico", exact: true })
+        .click();
+      await page
+        .getByText("Diagnóstico guardado en tu PC", { exact: true })
+        .waitFor();
+      const diagnostic = JSON.parse(await fs.readFile(diagnosticFile, "utf8"));
+      assert.equal(diagnostic.library.total, 1);
+      assert.equal(
+        diagnostic.application.version,
+        require("../package.json").version,
+      );
+      const serialized = JSON.stringify(diagnostic);
+      for (const privateValue of [
+        root,
+        "Backup QA Game",
+        "Keep this note",
+        "QA profile",
+        "Missing",
+      ])
+        assert.ok(!serialized.includes(privateValue));
+      assert.equal(
+        (await page.evaluate(() => window.orbit.getLibrary())).games[0].notes,
+        "Keep this note",
+      );
+    }
+
     await page
       .getByRole("button", { name: "Exportar biblioteca", exact: true })
       .scrollIntoViewIfNeeded();
