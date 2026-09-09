@@ -28,7 +28,10 @@ const crypto = require("node:crypto");
   const executable = fromSource
     ? require("electron")
     : process.env.ORBIT_TEST_EXE ||
-      path.resolve("release-next/win-unpacked/Orbit Games Next.exe");
+      path.resolve(
+        require("../package.json").build.directories.output,
+        "win-unpacked/Orbit Games Next.exe",
+      );
   const launchArgs = fromSource ? [path.resolve(".")] : [];
   const errors = [];
   const remoteRequests = [];
@@ -52,10 +55,12 @@ const crypto = require("node:crypto");
       .waitFor();
     const runtime = await application.evaluate(({ app }) => ({
       name: app.getName(),
+      version: app.getVersion(),
       userData: app.getPath("userData"),
       sessionData: app.getPath("sessionData"),
     }));
     assert.equal(runtime.name, "Orbit Games Next");
+    assert.equal(runtime.version, require("../package.json").version);
     assert.equal(runtime.userData, profile);
     assert.equal(runtime.sessionData, profile);
     const initial = await page.evaluate(() => window.orbit.getLibrary());

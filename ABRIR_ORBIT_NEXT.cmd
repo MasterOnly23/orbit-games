@@ -5,9 +5,9 @@ set "ORBIT_DATA_DIR="
 set "ORBIT_SKIP_SCAN="
 set "ORBIT_DEV_URL="
 cd /d "%~dp0"
-if not exist "release-next\win-unpacked\Orbit Games Next.exe" (
+if not exist "release-next\alpha3\win-unpacked\Orbit Games Next.exe" (
   echo Primero ejecuta npm ci y npm run package:dir en esta carpeta.
   pause
   exit /b 1
 )
-start "" "release-next\win-unpacked\Orbit Games Next.exe"
+start "" "release-next\alpha3\win-unpacked\Orbit Games Next.exe"

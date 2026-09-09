@@ -1,54 +1,51 @@
 # Orbit Games Next
 
-Primera versión de desarrollo para configurar Orbit en otros equipos Windows. Esta rama conserva una identidad independiente de **Orbit Games 1.0.0**.
+Biblioteca de juegos para Windows en desarrollo. La rama `feature/orbit-next-onboarding` mantiene una aplicación independiente de Orbit Games 1.0.0. El objetivo público exige Windows 10 y 11 x64; esa compatibilidad aún no está acreditada en ambos sistemas.
 
-## Dos aplicaciones independientes
+## Alfa 3
 
-El código posterior a alfa 2 permite organizar juegos por **Mi progreso** al añadir o editar: Por jugar, Jugando, En pausa, Completado o Dejado. El filtro **Progreso** se combina con búsqueda, plataforma e instalación. Es una clasificación personal; no modifica logros ni datos en las cuentas conectadas. Se conserva al sincronizar, detectar juegos y exportar/restaurar la biblioteca.
+La versión `0.2.0-alpha.3` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 3](RELEASE_ALPHA3.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
 
-El conector de desarrollo para itch.io requiere registrar la aplicación OAuth de Orbit antes de activarlo. Consulta [configuración y límites](ITCH_SETUP.md). El registro corresponde al producto; no será una tarea para cada usuario. Todavía no se ha validado una cuenta real ni se ha incluido en alfa 2.
-
-En el código posterior a alfa 2, **Ajustes → Exportar biblioteca** guarda juegos, rutas, opciones de lanzamiento, favoritos, notas, fichas y portadas locales en un JSON portable. **Restaurar** valida el archivo y muestra un resumen antes de agregar juegos o aplicar preferencias. Conserva los juegos ajenos a la copia y las rutas de las entradas ya existentes. Las nuevas entradas quedan sin verificar; revisa las rutas al cambiar de equipo. Las cuentas, sesiones y carpetas vigiladas actuales no se reemplazan. No incluye archivos de juegos ni descarga imágenes remotas. Admite las copias antiguas de preferencias para juegos existentes. Límites actuales: 10.000 juegos, 20 MiB por portada y 256 MiB por archivo. `node scripts/qa-backup.cjs` comprueba cancelación, restauración entre perfiles y portadas visibles tras reiniciar.
-
-El primer lanzamiento público tiene como objetivo Windows 10 y Windows 11 x64. La compatibilidad pública todavía no está acreditada: consulta [la matriz de validación](WINDOWS_VALIDATION.md).
+## Convivencia con Orbit actual
 
 | Elemento | Orbit actual | Orbit Next |
 |---|---|---|
 | Rama | `main` | `feature/orbit-next-onboarding` |
-| Nombre | Orbit Games | Orbit Games Next |
+| Aplicación | Orbit Games | Orbit Games Next |
 | Identificador | `com.pipe.orbitgames` | `com.pipe.orbitgames.next` |
-| Biblioteca y caché | `%APPDATA%\Orbit Games` | `%APPDATA%\Orbit Games Next` |
-| Salida de compilación | `release/` | `release-next/` |
-| Inicio de Windows | Configuración de Orbit | Entrada propia `OrbitGamesNext` |
+| Perfil | `%APPDATA%\Orbit Games` | `%APPDATA%\Orbit Games Next` |
+| Salida actual | `release/` | `release-next/alpha3/` |
+| Inicio con Windows | Entrada de Orbit | Entrada `OrbitGamesNext` |
 
-Next no importa ni modifica el perfil, las portadas o los favoritos de Orbit actual. Ambas aplicaciones pueden ejecutarse a la vez. El paquete de Next tiene un identificador de instalación independiente y no crea accesos directos automáticamente.
+Next no importa ni modifica automáticamente el perfil de Orbit actual. Ambas aplicaciones pueden ejecutarse a la vez. Las distintas alfas de Next comparten su perfil de Next; cierra una alfa de Next antes de abrir otra, porque la protección de instancia única puede enfocar la que ya está abierta. No hace falta cerrar Orbit Games 1.0.0.
 
-Las pruebas de escritorio usan subcarpetas nuevas de `%APPDATA%\Orbit Games Next\qa`. `ORBIT_DATA_DIR` solo admite rutas dentro del perfil de Next; se rechazan rutas externas y enlaces de directorio en ese perfil.
+Las pruebas usan perfiles nuevos dentro de `%APPDATA%\Orbit Games Next\qa`. Se rechazan rutas de perfil externas y enlaces de directorio. No se distribuyen bibliotecas personales, sesiones, portadas descargadas ni capturas en Git.
 
-## Estado de la versión alfa
+## Usar el paquete local
 
-- Asistente inicial: elegir carpetas, buscar, revisar, conectar cuentas opcionales y guardar.
-- Detección local existente de plataformas, con resumen por plataforma y carpetas de instalación.
-- Carpetas de accesos `.lnk` y `.url`, incluyendo sus subcarpetas inmediatas.
-- Carpetas adicionales con ejecutables: búsqueda hasta tres niveles, 5.000 entradas y 200 candidatos por búsqueda. No se siguen enlaces de directorio. Los límites se comunican al usuario.
-- Se descartan nombres habituales de instaladores, desinstaladores y herramientas. Los candidatos adicionales requieren selección explícita; no se ejecutan durante la búsqueda.
-- Se conservan la configuración y los juegos elegidos después de reiniciar.
-- El asistente puede abrirse otra vez desde **Ajustes → Revisar carpetas y juegos**.
-- Las consultas de fichas en línea son opcionales.
+Ejecuta `ABRIR_ORBIT_NEXT.cmd` en este checkout, o abre:
 
-Hay conectores comunitarios experimentales de Steam, GOG y Epic Games en el asistente y en Ajustes. Las conexiones con cuentas reales todavía requieren validación. No se garantiza cobertura de suscripciones o bibliotecas compartidas. Steam y GOG usan sesiones web propias; Epic guarda sus credenciales cifradas en el perfil de Next. Ninguna conexión utiliza la sesión del lanzador instalado ni requiere servidores de Orbit.
+```powershell
+& '.\release-next\alpha3\win-unpacked\Orbit Games Next.exe'
+```
 
-Las consultas fallidas o incompletas conservan la biblioteca anterior. Desconectar elimina la sesión local de Orbit y conserva los juegos y sus ajustes; no revoca por sí mismo autorizaciones desde la web del proveedor. Los juegos manuales y los lanzadores propios pueden añadirse mediante ejecutables o accesos directos. Los archivos encontrados en carpetas adicionales se proponen en escaneos posteriores y requieren revisión; no se ejecutan ni se agregan automáticamente.
+Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No requiere Node.js para ejecutarse. El instalador NSIS se genera en `release-next/alpha3/`; generarlo no lo instala. La alfa no tiene firma comercial ni actualización automática.
 
-En el código posterior a alfa 2, **Añadir/Editar juego → Opciones del ejecutable o lanzador propio** permite argumentos (uno por línea) y carpeta de trabajo para `.exe`. No se interpretan comandos de shell. Los accesos `.lnk` conservan los argumentos definidos en Windows. Se admiten varias entradas con el mismo ejecutable y opciones distintas. Si un ejecutable requiere elevación con argumentos, configura un acceso directo de Windows con esos parámetros y permisos.
+## Funciones disponibles
 
-## Ejecutar y compilar
+- Asistente: carpetas, revisión de candidatos, cuentas opcionales y guardado. Se puede repetir desde Ajustes.
+- Detección de accesos y fuentes locales de lanzadores. Las carpetas de ejecutables se exploran hasta tres niveles, con límites de 5.000 entradas y 200 candidatos; no se ejecutan los archivos descubiertos. Los candidatos requieren confirmación.
+- Juegos manuales y lanzadores propios: argumentos por línea y carpeta de trabajo para `.exe`. Los `.lnk` mantienen sus opciones de Windows. No se interpretan comandos de shell. Los ejecutables elevados con argumentos requieren un acceso directo configurado en Windows.
+- Estados de instalación diferenciados: instalado, no instalado y sin verificar. La presencia de un lanzador compartido no prueba una instalación.
+- Favoritos, recientes, notas, nombres personalizados, ocultos, búsqueda, filtros y portadas locales. Las fichas de Steam en línea son opcionales.
+- Progreso personal: Por jugar, Jugando, En pausa, Completado y Dejado; filtro combinable con plataforma, instalación y búsqueda. No modifica logros del proveedor.
+- Respaldo portable: catálogo, rutas, argumentos, preferencias, fichas y portadas locales. No incluye archivos de juegos ni sesiones. Al restaurar conserva juegos ajenos a la copia, rutas existentes, cuentas y carpetas vigiladas actuales. Nuevas entradas quedan sin verificar. Admite las preferencias del formato anterior. Límites: 10.000 juegos, 20 MiB por portada y 256 MiB por archivo.
 
-El código posterior a alfa 2 añade Humble Bundle como conexión experimental. Distingue descargas para Windows de referencias de claves para otras tiendas y no guarda códigos de canje. La activación y la identidad estable de la cuenta no se verifican; el login real está pendiente. `node scripts/qa-humble.cjs` comprueba el recorrido con respuestas controladas.
+Steam, GOG, Epic, Humble y Ubisoft tienen conectores experimentales; faltan pruebas con cuentas reales y cobertura de suscripciones/compartidos. Humble distingue descargas Windows y referencias de claves sin guardar códigos ni verificar su canje. Ubisoft señala que la edición para PC necesita verificación. itch.io requiere el registro OAuth de Orbit antes de habilitarse: [configuración y límites](ITCH_SETUP.md). No se presenta este estado como soporte universal de plataformas.
+
+## Desarrollo y comprobaciones
 
 Requiere Windows y Node.js 24 compatible con las dependencias fijadas.
-
-El código posterior a alfa 2 también incluye Ubisoft Connect experimental. Consulta accesos del proveedor, conserva las credenciales cifradas en el equipo y permite renovar y desconectar la sesión. La edición para PC se señala como pendiente de verificación. `node scripts/qa-ubisoft.cjs` valida el flujo con respuestas controladas; aún falta probar una cuenta real. Verificación actual del código: 42 pruebas automatizadas y compilación aprobadas; no sustituye la verificación del paquete publicado.
 
 ```powershell
 git clone --branch feature/orbit-next-onboarding https://github.com/MasterOnly23/orbit-games.git orbit-games-next
@@ -57,38 +54,15 @@ npm ci
 npm run dev
 ```
 
-Para generar el ejecutable independiente sin instalarlo:
-
-```powershell
-npm run package:dir
-& '.\release-next\win-unpacked\Orbit Games Next.exe'
-```
-
-Conserva toda la carpeta `win-unpacked`, no solo el `.exe`. `npm run package` genera el instalador NSIS independiente de Next; no lo instala. Es una versión alfa sin firma comercial ni actualizaciones automáticas.
-
-## Verificación
-
 ```powershell
 npm test
-npm run package:dir
+npm run package
 npm run test:desktop
-node scripts/qa-vault.cjs
-node scripts/qa-epic.cjs
+$env:ORBIT_TEST_EXE = (Resolve-Path '.\release-next\alpha3\win-unpacked\Orbit Games Next.exe').Path
+node scripts/qa-backup.cjs
+Remove-Item Env:ORBIT_TEST_EXE
 ```
 
-Las pruebas de dominio cubren la biblioteca original, el aislamiento de perfiles, la selección de carpetas, los límites de búsqueda y la confirmación antes de persistir. La prueba de escritorio utiliza el ejecutable de Next y un perfil vacío, recorre el asistente, elige un archivo ficticio que nunca se ejecuta, reinicia y comprueba la persistencia. No depende de que exista un juego comercial concreto ni una cantidad determinada de juegos.
+Los scripts `qa-epic.cjs`, `qa-humble.cjs`, `qa-ubisoft.cjs` y `qa-itch.cjs` prueban flujos con respuestas controladas; no acreditan login real. `qa-vault.cjs` comprueba cifrado nativo con datos ficticios. Los informes y capturas están en `output/`, excluido de Git. `VERIFICACION.md` es un informe histórico de Orbit 1.0.0.
 
-`output/` contiene los informes y capturas locales y queda excluido de Git. `VERIFICACION.md` describe la comprobación histórica de Orbit 1.0.0, no certifica Next. El roadmap general sigue en `ROADMAP.md`.
-
-Comprobación del 8 de septiembre de 2026: 30 pruebas unitarias aprobadas y recorrido de escritorio desde código, incluyendo perfil vacío, cuentas omitidas, selección de ejecutable, portada local, reinicio, descubrimiento posterior y ausencia de solicitudes remotas con las fichas desactivadas. `qa-vault.cjs` usa cifrado real de Windows con datos ficticios. `qa-epic.cjs` comprueba la integración completa con respuestas controladas; no acredita el login real de Epic. Faltan cuentas reales, otras plataformas, Windows 10, instalación y actualizaciones, beta externa y los demás criterios de `PRODUCT_PLAN.md`.
-
-## Estructura
-
-- `electron/runtime.cjs`: identidad y límites del perfil de Next.
-- `electron/onboarding/`: descubrimiento de carpetas, vista previa y confirmación de la configuración.
-- `src/features/onboarding/`: asistente inicial.
-- `electron/library/`: inventario, combinación de fuentes y persistencia.
-- `electron/platform/`: consultas de Windows y lanzamiento de juegos.
-- `electron/ipc.cjs` y `electron/preload.cjs`: operaciones de biblioteca y puente aislado.
-
-No se distribuyen bibliotecas personales, credenciales, portadas descargadas, capturas ni instaladores en Git. Las marcas y contenidos de terceros pertenecen a sus respectivos titulares.
+El código se organiza en `electron/library`, `electron/accounts`, `electron/onboarding` y `electron/platform`, con sus interfaces en `src/features`. Las marcas y contenidos de terceros pertenecen a sus titulares; los avisos de referencias están en `THIRD_PARTY_NOTICES.md`.

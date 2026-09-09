@@ -48,8 +48,8 @@ const { LibraryStore } = require("../electron/library/store.cjs");
     delete env.ELECTRON_RUN_AS_NODE;
     delete env.ORBIT_DEV_URL;
     application = await electron.launch({
-      executablePath: require("electron"),
-      args: [path.resolve(".")],
+      executablePath: process.env.ORBIT_TEST_EXE || require("electron"),
+      args: process.env.ORBIT_TEST_EXE ? [] : [path.resolve(".")],
       env,
     });
     const page = await application.firstWindow();
