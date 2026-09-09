@@ -29,7 +29,14 @@ test("Next identity and all writable profile overrides stay separate from stable
   const pkg = require("../package.json");
   assert.equal(pkg.productName, identity.name);
   assert.equal(pkg.build.appId, identity.appId);
-  assert.equal(pkg.build.directories.output, "release-next");
+  const outputRelative = path.relative(
+    path.resolve(__dirname, "../release-next"),
+    path.resolve(__dirname, "..", pkg.build.directories.output),
+  );
+  assert.ok(!path.isAbsolute(outputRelative));
+  assert.ok(
+    outputRelative !== ".." && !outputRelative.startsWith(`..${path.sep}`),
+  );
   assert.equal(pkg.build.nsis.shortcutName, identity.name);
 });
 

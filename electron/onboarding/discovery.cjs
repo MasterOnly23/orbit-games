@@ -1,12 +1,15 @@
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { idFor } = require("../library/model.cjs");
+const { abortable } = require("../library/abortable.cjs");
 
-async function validateFolders(value) {
+async function validateFolders(value, { signal } = {}) {
+  signal?.throwIfAborted();
   if (!Array.isArray(value) || value.length > 20)
     throw new Error("Puedes seleccionar hasta 20 carpetas de cada tipo.");
   const folders = [];
   for (const folder of value) {
+    signal?.throwIfAborted();
     if (typeof folder !== "string" || !path.isAbsolute(folder))
       throw new Error("Selecciona una carpeta con una ruta absoluta.");
     const resolved = path.resolve(folder);
@@ -14,7 +17,10 @@ async function validateFolders(value) {
       throw new Error(
         "Selecciona una carpeta de juegos, no una unidad completa.",
       );
-    const stat = await fs.lstat(resolved).catch(() => null);
+    const stat = await abortable(
+      () => fs.lstat(resolved).catch(() => null),
+      signal,
+    );
     if (!stat?.isDirectory() || stat.isSymbolicLink())
       throw new Error(
         `La carpeta no está disponible o es un enlace: ${resolved}`,
@@ -31,6 +37,8 @@ const excludedExecutable =
   /(?:unins|uninstall|setup|installer|updat|crash|report|redist|vcredist|dxsetup|unitycrash|easyanticheat|battleye)/i;
 
 async function findExecutableCandidates(roots, limits = {}) {
+  const { signal } = limits;
+  signal?.throwIfAborted();
   const maxDepth = limits.maxDepth ?? 3;
   const maxEntries = limits.maxEntries ?? 5000;
   const maxCandidates = limits.maxCandidates ?? 200;
@@ -41,19 +49,25 @@ async function findExecutableCandidates(roots, limits = {}) {
     truncated = false;
   const queue = roots.map((root) => ({ directory: root, root, depth: 0 }));
   while (queue.length && !truncated) {
+    signal?.throwIfAborted();
     const { directory, root, depth } = queue.shift();
     const key = directory.toLowerCase();
     if (visited.has(key)) continue;
     visited.add(key);
     let entries;
     try {
-      entries = await fs.readdir(directory, { withFileTypes: true });
+      entries = await abortable(
+        () => fs.readdir(directory, { withFileTypes: true }),
+        signal,
+      );
     } catch {
+      signal?.throwIfAborted();
       warnings.push(`No se pudo leer: ${directory}`);
       continue;
     }
     entries.sort((a, b) => a.name.localeCompare(b.name));
     for (const entry of entries) {
+      signal?.throwIfAborted();
       if (++inspected > maxEntries || candidates.length >= maxCandidates) {
         truncated = true;
         break;

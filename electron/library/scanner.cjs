@@ -4,6 +4,7 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const run = promisify(execFile);
 const { scanRiot } = require("./riot.cjs");
+const { abortable } = require("./abortable.cjs");
 const {
   normalize,
   idFor,
@@ -47,7 +48,8 @@ function game(name, provider, identity, props) {
     ...props,
   };
 }
-async function windowsInventory(folders, script) {
+async function windowsInventory(folders, script, { signal } = {}) {
+  signal?.throwIfAborted();
   const powershell = path.join(
     process.env.SystemRoot || "C:\\Windows",
     "System32",
@@ -67,6 +69,7 @@ async function windowsInventory(folders, script) {
     ],
     {
       windowsHide: true,
+      signal,
       timeout: 90000,
       maxBuffer: 12 * 1024 * 1024,
       env: {
@@ -79,14 +82,18 @@ async function windowsInventory(folders, script) {
   );
   return JSON.parse(stdout.replace(/^\uFEFF/, ""));
 }
-async function scanLibrary(folders, script) {
-  const inventory = await windowsInventory(folders, script);
+const scanIo = { read, exists, entries };
+async function scanLibrary(folders, script, { signal } = {}) {
+  const read = (file) => abortable(() => scanIo.read(file), signal);
+  const exists = (file) => abortable(() => scanIo.exists(file), signal);
+  const entries = (dir) => abortable(() => scanIo.entries(dir), signal);
+  const inventory = await windowsInventory(folders, script, { signal });
   const games = [],
     watchPaths = [...folders],
     warnings = [...inventory.warnings];
   const steamGames = new Map(),
     epicGames = new Map();
-  const riot = await scanRiot();
+  const riot = await abortable(() => scanRiot(), signal);
   games.push(...riot.games);
   warnings.push(...riot.warnings);
   watchPaths.push(...riot.watchPaths);

@@ -1,4 +1,5 @@
 const crypto = require("node:crypto");
+const { abortable } = require("../library/abortable.cjs");
 const { scanLibrary, inspectManual } = require("../library/scanner.cjs");
 const { mergeGames } = require("../library/model.cjs");
 const {
@@ -22,16 +23,34 @@ function registerOnboarding({
 }) {
   let preview = null,
     busy = false;
+  let searchController = null;
+  handle("setup:cancel", () => {
+    if (!searchController) return false;
+    searchController.abort(new Error("Búsqueda cancelada."));
+    return true;
+  });
   handle("setup:suggestions", () => folderSuggestions(desktop));
   handle("setup:preview", async (options) => {
     if (busy) throw new Error("La búsqueda anterior sigue en curso.");
     busy = true;
     preview = null;
+    searchController = new AbortController();
+    const { signal } = searchController;
     try {
-      const folders = await validateFolders(options?.folders);
-      const gameFolders = await validateFolders(options?.gameFolders);
-      const scan = await scanLocal(folders, inventoryScript);
-      const extra = await findExecutableCandidates(gameFolders);
+      const folders = await abortable(
+        () => validateFolders(options?.folders, { signal }),
+        signal,
+      );
+      const gameFolders = await abortable(
+        () => validateFolders(options?.gameFolders, { signal }),
+        signal,
+      );
+      const scan = await abortable(
+        () => scanLocal(folders, inventoryScript, { signal }),
+        signal,
+      );
+      const extra = await findExecutableCandidates(gameFolders, { signal });
+      signal.throwIfAborted();
       const games = mergeGames(scan.games);
       const candidates = unknownCandidates(extra.candidates, [
         ...games,
@@ -59,7 +78,11 @@ function registerOnboarding({
         candidates,
         warnings: [...scan.warnings, ...extra.warnings],
       };
+    } catch (error) {
+      if (signal.aborted) return { cancelled: true };
+      throw error;
     } finally {
+      searchController = null;
       busy = false;
     }
   });

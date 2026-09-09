@@ -79,6 +79,48 @@ const crypto = require("node:crypto");
     await page
       .getByRole("button", { name: "Elegir carpeta de juegos", exact: true })
       .click();
+    if (fromSource) {
+      await application.evaluate((_electron, folder) => {
+        const filesystem = process.mainModule.require("node:fs/promises");
+        const original = filesystem.readdir;
+        globalThis.orbitSetupQaWaiting = false;
+        filesystem.readdir = async (...args) => {
+          if (String(args[0]).toLowerCase() !== folder.toLowerCase())
+            return original(...args);
+          filesystem.readdir = original;
+          globalThis.orbitSetupQaWaiting = true;
+          await new Promise((resolve) => {
+            globalThis.orbitSetupQaRelease = resolve;
+          });
+          return original(...args);
+        };
+      }, fixture);
+      await page
+        .getByRole("button", { name: "Buscar juegos", exact: true })
+        .click();
+      const deadline = Date.now() + 90000;
+      while (
+        !(await application.evaluate(() => globalThis.orbitSetupQaWaiting))
+      ) {
+        if (Date.now() > deadline)
+          throw new Error("Setup did not reach controlled folder read");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      await page
+        .getByRole("button", { name: "Detener búsqueda", exact: true })
+        .click();
+      await page
+        .getByText(
+          "Búsqueda detenida. Puedes ajustar las carpetas y volver a buscar. No se guardaron juegos.",
+          { exact: true },
+        )
+        .waitFor();
+      assert.equal(
+        (await page.evaluate(() => window.orbit.getLibrary())).games.length,
+        0,
+      );
+      await application.evaluate(() => globalThis.orbitSetupQaRelease());
+    }
     await page
       .getByRole("button", { name: "Buscar juegos", exact: true })
       .click();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Button,
@@ -26,7 +26,15 @@ export default function SetupWizard({
   const [selected, setSelected] = useState([]);
   const [online, setOnline] = useState(!!settings.onlineMetadata);
   const [busy, setBusy] = useState(false);
+  const [searching, setSearching] = useState(false);
+  const [stopping, setStopping] = useState(false);
+  const [notice, setNotice] = useState("");
+  const heading = useRef(null);
   const [error, setError] = useState("");
+  useEffect(() => {
+    heading.current?.scrollIntoView({ block: "start" });
+    heading.current?.focus({ preventScroll: true });
+  }, [preview?.id, showAccounts]);
   useEffect(() => {
     let active = true;
     window.orbit
@@ -47,6 +55,7 @@ export default function SetupWizard({
   async function run(work) {
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       await work();
     } catch (e) {
@@ -92,7 +101,7 @@ export default function SetupWizard({
           <span className="setup-badge">
             ORBIT GAMES NEXT · VERSIÓN DE PRUEBA
           </span>
-          <h1>
+          <h1 ref={heading} tabIndex={-1}>
             {showAccounts
               ? "Tus cuentas, si las necesitas"
               : preview
@@ -121,6 +130,11 @@ export default function SetupWizard({
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
+          </Alert>
+        )}
+        {notice && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {notice}
           </Alert>
         )}
         {showAccounts ? (
@@ -308,6 +322,25 @@ export default function SetupWizard({
             )}
           </div>
           <div className="setup-buttons">
+            {searching && (
+              <Button
+                disabled={stopping}
+                color="inherit"
+                onClick={async () => {
+                  setStopping(true);
+                  try {
+                    await window.orbit.cancelSetup();
+                  } catch {
+                    setError(
+                      "No se pudo detener la búsqueda. Inténtalo de nuevo.",
+                    );
+                    setStopping(false);
+                  }
+                }}
+              >
+                {stopping ? "Deteniendo…" : "Detener búsqueda"}
+              </Button>
+            )}
             {onCancel && (
               <Button
                 disabled={busy || connecting}
@@ -342,10 +375,24 @@ export default function SetupWizard({
               onClick={() =>
                 run(async () => {
                   if (!preview) {
-                    setPreview(
-                      await window.orbit.setupPreview({ folders, gameFolders }),
-                    );
-                    setSelected([]);
+                    setSearching(true);
+                    try {
+                      const result = await window.orbit.setupPreview({
+                        folders,
+                        gameFolders,
+                      });
+                      if (result.cancelled)
+                        setNotice(
+                          "Búsqueda detenida. Puedes ajustar las carpetas y volver a buscar. No se guardaron juegos.",
+                        );
+                      else {
+                        setPreview(result);
+                        setSelected([]);
+                      }
+                    } finally {
+                      setSearching(false);
+                      setStopping(false);
+                    }
                   } else if (!showAccounts) {
                     setShowAccounts(true);
                   } else {

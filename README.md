@@ -33,6 +33,8 @@ Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No r
 
 ## Funciones disponibles
 
+El código posterior al paquete alfa 3 añade **Detener búsqueda** al asistente: permite cancelar, corregir carpetas y reintentar sin guardar resultados. El guardado final debe terminar. Los cambios de paso llevan el foco al título para navegación por teclado.
+
 - Asistente: carpetas, revisión de candidatos, cuentas opcionales y guardado. Se puede repetir desde Ajustes.
 - Detección de accesos y fuentes locales de lanzadores. Las carpetas de ejecutables se exploran hasta tres niveles, con límites de 5.000 entradas y 200 candidatos; no se ejecutan los archivos descubiertos. Los candidatos requieren confirmación.
 - Juegos manuales y lanzadores propios: argumentos por línea y carpeta de trabajo para `.exe`. Los `.lnk` mantienen sus opciones de Windows. No se interpretan comandos de shell. Los ejecutables elevados con argumentos requieren un acceso directo configurado en Windows.
