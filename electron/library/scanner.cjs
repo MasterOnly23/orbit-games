@@ -3,6 +3,7 @@ const path = require("node:path");
 const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const run = promisify(execFile);
+const { scanRiot } = require("./riot.cjs");
 const {
   normalize,
   idFor,
@@ -10,6 +11,7 @@ const {
   classifyUri,
   validLaunchUri,
   executableFromIcon,
+  registryIdentity,
 } = require("./model.cjs");
 async function exists(file) {
   if (!file) return false;
@@ -84,6 +86,10 @@ async function scanLibrary(folders, script) {
     warnings = [...inventory.warnings];
   const steamGames = new Map(),
     epicGames = new Map();
+  const riot = await scanRiot();
+  games.push(...riot.games);
+  warnings.push(...riot.warnings);
+  watchPaths.push(...riot.watchPaths);
   const steamRoot = inventory.steamPath || "C:\\Program Files (x86)\\Steam";
   const libraries =
     parseVdf(
@@ -321,35 +327,16 @@ async function scanLibrary(folders, script) {
           /--launch-patchline=([\w_]+)/,
         )?.[1];
         if (product && channel) {
-          const settingsPath = path.join(
-            process.env.ProgramData || "C:\\ProgramData",
-            "Riot Games",
-            "Metadata",
-            `${product}.${channel}`,
-            `${product}.${channel}.product_settings.yaml`,
+          const installation = riot.games.find(
+            (game) => game.providerId === `${product}:${channel}`,
           );
-          const settings = await read(settingsPath);
-          const raw = settings.match(
-            /^product_install_full_path:\s*"([^"]+)"/m,
-          )?.[1];
-          const installPath = raw?.replace(/\\\\/g, "\\");
-          const candidates =
-            product === "league_of_legends"
-              ? ["LeagueClient.exe"]
-              : product === "valorant"
-                ? ["live/VALORANT.exe", "VALORANT.exe"]
-                : [];
-          for (const relative of candidates)
-            if (
-              installPath &&
-              (await exists(path.join(installPath, relative)))
-            ) {
-              g.status = "installed";
-              g.statusReason =
-                "Metadatos de Riot y ejecutable del juego disponibles.";
-              g.installPath = installPath;
-              break;
-            }
+          if (installation) {
+            g.providerId = installation.providerId;
+            g.status = installation.status;
+            g.statusReason = installation.statusReason;
+            g.installPath = installation.installPath;
+            g.targetExecutable = installation.targetExecutable;
+          }
         }
       }
       if (/^https?:/i.test(shortcut.parsing || uri)) {
@@ -377,7 +364,11 @@ async function scanLibrary(folders, script) {
           : null;
     if (
       !provider ||
-      games.some((g) => normalize(g.name) === normalize(r.DisplayName))
+      games.some(
+        (g) =>
+          g.provider === provider &&
+          normalize(g.name) === normalize(r.DisplayName),
+      )
     )
       continue;
     const executable = executableFromIcon(r.DisplayIcon);
@@ -389,6 +380,7 @@ async function scanLibrary(folders, script) {
     const present = await exists(executable);
     games.push(
       game(r.DisplayName, provider, `registry:${r.PSChildName}`, {
+        ...registryIdentity(provider, r.PSChildName),
         status: present ? "installed" : "uninstalled",
         statusReason: present
           ? "Registro de Windows y ejecutable disponibles."

@@ -13,6 +13,14 @@ const idFor = (value) =>
     .update(value.toLowerCase())
     .digest("hex")
     .slice(0, 20);
+function registryIdentity(provider, key) {
+  const providerId =
+    provider === "GOG" ? /^(\d+)_is1$/i.exec(key)?.[1] : undefined;
+  return {
+    id: idFor(providerId ? `gog:${providerId}` : `registry:${key}`),
+    providerId,
+  };
+}
 function parseVdf(text) {
   const tokens = text.match(/"(?:\\.|[^"\\])*"|[{}]/g) || [];
   let index = 0;
@@ -167,6 +175,7 @@ const executableFromIcon = (value) =>
     .replace(/^"([^"]+)".*$/, "$1")
     .replace(/,\s*-?\d+$/, "");
 module.exports = {
+  registryIdentity,
   normalize,
   idFor,
   parseVdf,
