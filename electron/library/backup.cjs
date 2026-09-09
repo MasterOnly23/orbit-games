@@ -2,6 +2,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { createHash, randomUUID } = require("node:crypto");
 const { validLaunchUri } = require("./model.cjs");
+const playStatuses = require("./play-status.json");
 
 const MAX_BYTES = 256 * 1024 * 1024;
 const MAX_IMAGE = 20 * 1024 * 1024;
@@ -25,6 +26,14 @@ function artworkName(game) {
 }
 function preferences(value) {
   const result = {};
+  if (value.playStatus !== undefined) {
+    if (
+      typeof value.playStatus !== "string" ||
+      !Object.hasOwn(playStatuses, value.playStatus)
+    )
+      invalid();
+    result.playStatus = value.playStatus;
+  }
   for (const key of ["favorite", "hidden"])
     if (typeof value[key] === "boolean") result[key] = value[key];
   for (const [key, max] of [

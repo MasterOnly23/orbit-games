@@ -653,6 +653,7 @@ main {
 }
 .library-filterbar {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   margin: 21px 0 19px;

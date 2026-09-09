@@ -122,6 +122,7 @@ function mergeGames(detected, previous = []) {
       favorite: old?.favorite || false,
       hidden: old?.hidden || false,
       notes: old?.notes || "",
+      playStatus: old?.playStatus || "none",
       statusOverride: old?.statusOverride || "auto",
       metadata: old?.metadata || null,
       metadataCheckedAt: old?.metadataCheckedAt,

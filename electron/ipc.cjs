@@ -11,6 +11,12 @@ const { launchGame } = require("./platform/launch.cjs");
 const { validateLaunchOptions } = require("./platform/launch-options.cjs");
 const { idFor } = require("./library/model.cjs");
 const { createHash } = require("node:crypto");
+const playStatuses = require("./library/play-status.json");
+function playStatus(value = "none") {
+  if (typeof value !== "string" || !Object.hasOwn(playStatuses, value))
+    throw new Error("Selecciona un estado de progreso válido.");
+  return value;
+}
 const {
   createBackup,
   writeBackup,
@@ -37,6 +43,8 @@ function registerIpc({
     const changes = {};
     if (!patch || typeof patch !== "object")
       throw new Error("Cambios no válidos.");
+    if (patch.playStatus !== undefined)
+      changes.playStatus = playStatus(patch.playStatus);
     for (const key of ["favorite", "hidden"])
       if (typeof patch[key] === "boolean") changes[key] = patch[key];
     for (const key of ["notes", "customName"])
@@ -79,6 +87,7 @@ function registerIpc({
     return snapshot();
   });
   handle("game:add", async (payload) => {
+    const progress = playStatus(payload?.playStatus);
     if (typeof payload?.target !== "string" || payload.target.length > 2048)
       throw new Error("Selecciona una ruta válida.");
     const g = await inspectManual(
@@ -110,6 +119,7 @@ function registerIpc({
     }
     store.data.games.push({
       ...g,
+      playStatus: progress,
       addedAt: new Date().toISOString(),
       favorite: false,
       hidden: false,

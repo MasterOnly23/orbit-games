@@ -4,6 +4,8 @@ Primera versión de desarrollo para configurar Orbit en otros equipos Windows. E
 
 ## Dos aplicaciones independientes
 
+El código posterior a alfa 2 permite organizar juegos por **Mi progreso** al añadir o editar: Por jugar, Jugando, En pausa, Completado o Dejado. El filtro **Progreso** se combina con búsqueda, plataforma e instalación. Es una clasificación personal; no modifica logros ni datos en las cuentas conectadas. Se conserva al sincronizar, detectar juegos y exportar/restaurar la biblioteca.
+
 El conector de desarrollo para itch.io requiere registrar la aplicación OAuth de Orbit antes de activarlo. Consulta [configuración y límites](ITCH_SETUP.md). El registro corresponde al producto; no será una tarea para cada usuario. Todavía no se ha validado una cuenta real ni se ha incluido en alfa 2.
 
 En el código posterior a alfa 2, **Ajustes → Exportar biblioteca** guarda juegos, rutas, opciones de lanzamiento, favoritos, notas, fichas y portadas locales en un JSON portable. **Restaurar** valida el archivo y muestra un resumen antes de agregar juegos o aplicar preferencias. Conserva los juegos ajenos a la copia y las rutas de las entradas ya existentes. Las nuevas entradas quedan sin verificar; revisa las rutas al cambiar de equipo. Las cuentas, sesiones y carpetas vigiladas actuales no se reemplazan. No incluye archivos de juegos ni descarga imágenes remotas. Admite las copias antiguas de preferencias para juegos existentes. Límites actuales: 10.000 juegos, 20 MiB por portada y 256 MiB por archivo. `node scripts/qa-backup.cjs` comprueba cancelación, restauración entre perfiles y portadas visibles tras reiniciar.

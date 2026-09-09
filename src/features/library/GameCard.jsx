@@ -1,6 +1,6 @@
 import { Star, Check, HelpCircle } from "lucide-react";
 import GameArtwork from "./GameArtwork";
-import { nameOf, statusOf, statusLabel } from "./useLibrary";
+import { nameOf, statusOf, statusLabel, playStatuses } from "./useLibrary";
 export default function GameCard({
   game,
   selected,
@@ -38,6 +38,9 @@ export default function GameCard({
             {game.provider}
           </span>
           {game.accountAccessNote && <small>{game.accountAccessNote}</small>}
+          {game.playStatus && game.playStatus !== "none" && (
+            <small>{playStatuses[game.playStatus]}</small>
+          )}
         </div>
       </button>
       <button

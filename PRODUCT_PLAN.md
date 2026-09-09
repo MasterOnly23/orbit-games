@@ -36,7 +36,7 @@ Ampliación explícita del usuario: agregar todas las conexiones viables y admit
 | CAT | Biblioteca completa | Unión de inventario local y acceso remoto sin duplicados incorrectos; conserva ediciones, tiendas, datos manuales y fuentes | Pendiente |
 | DET | Detección sólida | Fixtures por proveedor y pruebas en otras máquinas: rutas personalizadas, múltiples discos, manifiestos incompletos, unidades ausentes y accesos ambiguos | Parcial |
 | CORE | Funciones actuales de Orbit | Agregar/editar, iniciar, revelar ubicación, favoritos, recientes, filtros, búsqueda, fichas, imágenes y ajustes comprobados de extremo a extremo | Parcial |
-| ORG | Organización útil | Colecciones, etiquetas/estado de juego, filtros combinables y tratamiento explícito de duplicados | Pendiente |
+| ORG | Organización útil | Colecciones, etiquetas/estado de juego, filtros combinables y tratamiento explícito de duplicados | Parcial: progreso personal y filtro combinable |
 | DATA | Recuperación y respaldo | Guardado resistente, migraciones, copia completa con portadas, importación validada, cancelación y recuperación tras fallos | Parcial |
 | ART | Fichas y portadas | Proveedor/atribución, caché persistente, recuperación, elección manual y funcionamiento sin red | Parcial |
 | AUTH | Protección de cuentas | Almacenamiento protegido, límites de navegación, expiración y errores saneados; verificación de ausencia de secretos en IPC/logs/exportación | Pendiente |
@@ -53,6 +53,8 @@ Steam, Epic Games, GOG, Xbox/Microsoft Store, EA app, Ubisoft Connect, Battle.ne
 Para cada plataforma: separar detección local, consulta de biblioteca, autenticación, inicio/instalación mediante lanzador, metadatos y soporte de suscripciones. Si una capacidad no es viable, registrar la evidencia y ofrecer la capacidad local o importación explícita correspondiente; no presentar ese sustituto como conexión de cuenta terminada.
 
 ## Secuencia de trabajo
+
+Organización posterior a alfa 2: estados personales Sin organizar / Por jugar / Jugando / En pausa / Completado / Dejado, disponibles al añadir o editar. Visibles en tarjetas y filtrables junto con búsqueda, plataforma e instalación. Independientes del estado instalado y de logros del proveedor. Persisten en escaneos, sincronización/desconexión de cuentas y respaldos portables. 54 pruebas y compilación pasan; recorrido de escritorio verifica edición, reinicio, escaneo, filtros y ancho de 1000 px. Colecciones, etiquetas y gestión explícita de duplicados siguen pendientes.
 
 Protección de versiones del almacén: una biblioteca con formato incompatible bloquea apertura y guardado, aunque exista un respaldo antiguo compatible. Solo ausencia o corrupción recuperable permiten recurrir a `.bak`; errores de acceso o dispositivo no disparan reemplazo. Una carga fallida impide escrituras posteriores. 53 pruebas pasan, incluidos archivos intactos ante formatos futuros, copia incompatible y origen ilegible. Esto protege el regreso accidental a una versión anterior, pero no sustituye implementar y probar futuras migraciones ni la actualización empaquetada.
 

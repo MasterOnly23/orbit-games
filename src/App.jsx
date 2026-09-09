@@ -18,7 +18,12 @@ import {
   Monitor,
   CheckCircle2,
 } from "lucide-react";
-import { useLibrary, nameOf, statusOf } from "./features/library/useLibrary";
+import {
+  useLibrary,
+  nameOf,
+  statusOf,
+  playStatuses,
+} from "./features/library/useLibrary";
 import GameCard from "./features/library/GameCard";
 import GameHero from "./features/library/GameHero";
 import GameDialog from "./features/library/GameDialog";
@@ -37,6 +42,7 @@ export default function App() {
     [provider, setProvider] = useState("all"),
     [query, setQuery] = useState(""),
     [sort, setSort] = useState("name"),
+    [progress, setProgress] = useState("all"),
     [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState(
       localStorage.getItem("orbit-selected") || "",
@@ -74,6 +80,9 @@ export default function App() {
         .filter((g) => view !== "recent" || g.lastPlayed)
         .filter((g) => provider === "all" || g.provider === provider)
         .filter((g) => filter === "all" || statusOf(g) === filter)
+        .filter(
+          (g) => progress === "all" || (g.playStatus || "none") === progress,
+        )
         .filter((g) =>
           nameOf(g)
             .normalize("NFD")
@@ -94,7 +103,7 @@ export default function App() {
               ? Date.parse(b.addedAt) - Date.parse(a.addedAt)
               : nameOf(a).localeCompare(nameOf(b), "es"),
         ),
-    [games, view, provider, filter, query, sort],
+    [games, view, provider, filter, progress, query, sort],
   );
   const selectedGame =
     filtered.find((g) => g.id === selected) ||
@@ -364,6 +373,21 @@ export default function App() {
                   </div>
                 </div>
                 <div className="library-filterbar">
+                  <label className="sort-control">
+                    <span>Progreso:</span>
+                    <select
+                      aria-label="Filtrar por progreso"
+                      value={progress}
+                      onChange={(event) => setProgress(event.target.value)}
+                    >
+                      <option value="all">Todos los estados</option>
+                      {Object.entries(playStatuses).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <div className="filter-pills">
                     {[
                       ["all", "Todos"],

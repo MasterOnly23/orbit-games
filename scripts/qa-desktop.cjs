@@ -162,6 +162,10 @@ const crypto = require("node:crypto");
       .fill("--profile\nQA profile with spaces");
     await page.getByLabel("Carpeta de trabajo", { exact: true }).fill(fixture);
     await page
+      .getByRole("combobox", { name: "Mi progreso", exact: true })
+      .click();
+    await page.getByRole("option", { name: "Jugando", exact: true }).click();
+    await page
       .getByRole("button", { name: "Guardar cambios", exact: true })
       .click();
     await page.waitForFunction(
@@ -259,6 +263,74 @@ const crypto = require("node:crypto");
       "Discovery must require confirmation",
     );
     await page.getByRole("button", { name: "Revisar", exact: true }).waitFor();
+    assert.equal(
+      discovered.games.find((game) => game.name === "Orbit QA Adventure")
+        .playStatus,
+      "playing",
+    );
+    await page
+      .getByRole("combobox", { name: "Filtrar por progreso" })
+      .selectOption("completed");
+    assert.equal(
+      await page
+        .getByRole("button", {
+          name: "Seleccionar Orbit QA Adventure",
+          exact: true,
+        })
+        .count(),
+      0,
+    );
+    await page
+      .getByRole("combobox", { name: "Filtrar por progreso" })
+      .selectOption("playing");
+    await page
+      .getByRole("button", {
+        name: "Seleccionar Orbit QA Adventure",
+        exact: true,
+      })
+      .waitFor();
+    await page.setViewportSize({ width: 1000, height: 700 });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      true,
+    );
+    await page
+      .getByRole("button", {
+        name: "Seleccionar Orbit QA Adventure",
+        exact: true,
+      })
+      .scrollIntoViewIfNeeded();
+    const progressGame = discovered.games.find(
+      (game) => game.name === "Orbit QA Adventure",
+    );
+    await assert.rejects(
+      page.evaluate(
+        (id) =>
+          window.orbit.updateGame(id, {
+            playStatus: "invalid",
+            notes: "Must not save",
+          }),
+        progressGame.id,
+      ),
+    );
+    const afterInvalid = await page.evaluate(() => window.orbit.getLibrary());
+    assert.equal(
+      afterInvalid.games.find((game) => game.id === progressGame.id).playStatus,
+      "playing",
+    );
+    assert.notEqual(
+      afterInvalid.games.find((game) => game.id === progressGame.id).notes,
+      "Must not save",
+    );
+    await page.screenshot({
+      path: path.join(output, "next-progress.png"),
+      animations: "disabled",
+    });
+    await page
+      .getByRole("combobox", { name: "Filtrar por progreso" })
+      .selectOption("all");
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
     await page
       .getByRole("button", { name: "Conectar GOG", exact: true })

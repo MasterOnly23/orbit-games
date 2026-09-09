@@ -18,7 +18,7 @@ import {
   EyeOff,
   RotateCcw,
 } from "lucide-react";
-import { nameOf } from "./useLibrary";
+import { nameOf, playStatuses } from "./useLibrary";
 export default function GameDialog({ open, onClose, game, action, onAdded }) {
   const {
     register,
@@ -39,6 +39,7 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
         target: "",
         notes: game?.notes || "",
         statusOverride: game?.statusOverride || "auto",
+        playStatus: game?.playStatus || "none",
         launchArguments: (game?.launchOptions?.args || []).join("\n"),
         workingDirectory: game?.launchOptions?.workingDirectory || "",
       });
@@ -60,12 +61,14 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
           await window.orbit.updateGame(game.id, {
             customName: values.name,
             notes: values.notes,
+            playStatus: values.playStatus,
             statusOverride: values.statusOverride,
             target: values.target,
             launchOptions,
           });
         } else {
           const id = await window.orbit.addGame({
+            playStatus: values.playStatus,
             name: values.name,
             target: values.target,
             launchOptions,
@@ -116,6 +119,20 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
           </p>
         </DialogTitle>
         <DialogContent className="form-content">
+          <TextField
+            label="Mi progreso"
+            select
+            fullWidth
+            value={watch("playStatus") || "none"}
+            onChange={(event) => setValue("playStatus", event.target.value)}
+            helperText="Tu organización personal. No cambia la instalación ni los logros del juego."
+          >
+            {Object.entries(playStatuses).map(([value, label]) => (
+              <MenuItem key={value} value={value}>
+                {label}
+              </MenuItem>
+            ))}
+          </TextField>
           <TextField
             label="Nombre del juego"
             fullWidth
