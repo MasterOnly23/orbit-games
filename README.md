@@ -4,6 +4,8 @@ Primera versión de desarrollo para configurar Orbit en otros equipos Windows. E
 
 ## Dos aplicaciones independientes
 
+El primer lanzamiento público tiene como objetivo Windows 10 y Windows 11 x64. La compatibilidad pública todavía no está acreditada: consulta [la matriz de validación](WINDOWS_VALIDATION.md).
+
 | Elemento | Orbit actual | Orbit Next |
 |---|---|---|
 | Rama | `main` | `feature/orbit-next-onboarding` |
@@ -39,6 +41,8 @@ En el código posterior a alfa 2, **Añadir/Editar juego → Opciones del ejecut
 El código posterior a alfa 2 añade Humble Bundle como conexión experimental. Distingue descargas para Windows de referencias de claves para otras tiendas y no guarda códigos de canje. La activación y la identidad estable de la cuenta no se verifican; el login real está pendiente. `node scripts/qa-humble.cjs` comprueba el recorrido con respuestas controladas.
 
 Requiere Windows y Node.js 24 compatible con las dependencias fijadas.
+
+El código posterior a alfa 2 también incluye Ubisoft Connect experimental. Consulta accesos del proveedor, conserva las credenciales cifradas en el equipo y permite renovar y desconectar la sesión. La edición para PC se señala como pendiente de verificación. `node scripts/qa-ubisoft.cjs` valida el flujo con respuestas controladas; aún falta probar una cuenta real. Verificación actual del código: 42 pruebas automatizadas y compilación aprobadas; no sustituye la verificación del paquete publicado.
 
 ```powershell
 git clone --branch feature/orbit-next-onboarding https://github.com/MasterOnly23/orbit-games.git orbit-games-next

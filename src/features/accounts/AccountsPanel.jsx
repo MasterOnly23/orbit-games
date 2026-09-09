@@ -95,6 +95,7 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
         { id: "gog", name: "GOG" },
         { id: "epic", name: "Epic Games" },
         { id: "humble", name: "Humble Bundle" },
+        { id: "ubisoft", name: "Ubisoft Connect" },
       ].map((provider) => (
         <Button
           key={provider.id}

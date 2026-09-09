@@ -20,6 +20,8 @@ Este objetivo amplía el primer asistente de `e9883d5`. No se considera terminad
 2. Priorizar funcionamiento íntegramente local, sin servidores propios. Si un servidor resulta absolutamente necesario para una función, explicar la necesidad al usuario antes de incorporarlo.
 3. Windows 10 y Windows 11 x64 desde la primera versión pública. Ambos requieren verificación; probar solo Windows 11 no acredita Windows 10.
 
+La matriz de aceptación por sistema y los datos que deben acompañar cada prueba están en [WINDOWS_VALIDATION.md](WINDOWS_VALIDATION.md).
+
 La arquitectura no debe exigir una cuenta Orbit para usar una biblioteca local. La sincronización, las sesiones y el inventario se mantienen en el equipo del usuario.
 
 Ampliación explícita del usuario: agregar todas las conexiones viables y admitir juegos manuales, sin plataforma o con su propio lanzador. El soporte manual no reemplaza ninguna integración viable; ambos recorridos forman parte del producto.
@@ -51,6 +53,8 @@ Steam, Epic Games, GOG, Xbox/Microsoft Store, EA app, Ubisoft Connect, Battle.ne
 Para cada plataforma: separar detección local, consulta de biblioteca, autenticación, inicio/instalación mediante lanzador, metadatos y soporte de suscripciones. Si una capacidad no es viable, registrar la evidencia y ofrecer la capacidad local o importación explícita correspondiente; no presentar ese sustituto como conexión de cuenta terminada.
 
 ## Secuencia de trabajo
+
+Estado de Ubisoft Connect posterior a alfa 2: conector comunitario experimental con ventana de autenticación propia, renovación de sesión, almacenamiento cifrado y consulta de accesos declarados como propios. Excluye accesos expirados/revocados y no presenta el historial como propiedad. Señala que la edición para PC requiere verificación. Las 42 pruebas automatizadas y `qa-ubisoft.cjs` pasan; este último usa respuestas controladas y comprueba conexión, renovación, desconexión y ausencia de secretos en la biblioteca enviada a la interfaz. Login real, suscripciones, cobertura completa y condiciones de distribución siguen pendientes. Este código aún no está incluido en el paquete alfa 2.
 
 1. Persistencia recuperable y unión no destructiva de fuentes, contratos y fixtures de proveedores.
 2. Integraciones de cuentas y estado visible de sincronización, empezando por flujos verificables; ampliar proveedor por proveedor.
