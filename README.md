@@ -4,6 +4,8 @@ Primera versión de desarrollo para configurar Orbit en otros equipos Windows. E
 
 ## Dos aplicaciones independientes
 
+En el código posterior a alfa 2, **Ajustes → Exportar biblioteca** guarda juegos, rutas, opciones de lanzamiento, favoritos, notas, fichas y portadas locales en un JSON portable. **Restaurar** valida el archivo y muestra un resumen antes de agregar juegos o aplicar preferencias. Conserva los juegos ajenos a la copia y las rutas de las entradas ya existentes. Las nuevas entradas quedan sin verificar; revisa las rutas al cambiar de equipo. Las cuentas, sesiones y carpetas vigiladas actuales no se reemplazan. No incluye archivos de juegos ni descarga imágenes remotas. Admite las copias antiguas de preferencias para juegos existentes. Límites actuales: 10.000 juegos, 20 MiB por portada y 256 MiB por archivo. `node scripts/qa-backup.cjs` comprueba cancelación, restauración entre perfiles y portadas visibles tras reiniciar.
+
 El primer lanzamiento público tiene como objetivo Windows 10 y Windows 11 x64. La compatibilidad pública todavía no está acreditada: consulta [la matriz de validación](WINDOWS_VALIDATION.md).
 
 | Elemento | Orbit actual | Orbit Next |

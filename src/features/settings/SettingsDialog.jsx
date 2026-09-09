@@ -121,9 +121,10 @@ export default function SettingsDialog({
         <div className="form-section-heading">
           <h3>Tu biblioteca, en tu PC</h3>
           <p>
-            Los favoritos, nombres y notas se guardan localmente. Exporta sus
-            preferencias para tener otra copia; restaurar las aplica a juegos
-            que ya estén en tu biblioteca.
+            Guarda juegos, rutas, argumentos, favoritos, notas, fichas y
+            portadas locales en una copia. No incluye los archivos de los juegos
+            ni sesiones de cuentas. Al restaurar se conservan las cuentas y
+            carpetas vigiladas actuales; revisa las rutas si cambias de PC.
           </p>
         </div>
         <div className="backup-actions">
@@ -138,7 +139,7 @@ export default function SettingsDialog({
               )
             }
           >
-            Exportar preferencias
+            Exportar biblioteca
           </Button>
           <Button
             color="inherit"
@@ -149,7 +150,7 @@ export default function SettingsDialog({
                 (result) =>
                   result === false
                     ? "Restauración cancelada"
-                    : `Preferencias restauradas para ${result} juegos`,
+                    : `Respaldo aplicado a ${result} juegos`,
               )
             }
           >

@@ -11,6 +11,12 @@ const { launchGame } = require("./platform/launch.cjs");
 const { validateLaunchOptions } = require("./platform/launch-options.cjs");
 const { idFor } = require("./library/model.cjs");
 const { createHash } = require("node:crypto");
+const {
+  createBackup,
+  writeBackup,
+  readBackup,
+  restoreBackup,
+} = require("./library/backup.cjs");
 function registerIpc({
   win,
   store,
@@ -259,6 +265,7 @@ function registerIpc({
       path.join(store.directory, "artwork", `${g.id}.jpg`),
       image.toJPEG(88),
     );
+    delete g.artworkFile;
     g.artworkRevision = Date.now();
     await save();
     return true;
@@ -271,69 +278,44 @@ function registerIpc({
   });
   handle("library:export", async () => {
     const result = await dialog.showSaveDialog(win, {
-      title: "Guardar respaldo",
-      defaultPath: "Orbit Games - respaldo.json",
-      filters: [{ name: "Respaldo JSON", extensions: ["json"] }],
+      title: "Guardar biblioteca y portadas",
+      defaultPath: "Orbit Next - biblioteca.json",
+      filters: [{ name: "Respaldo de Orbit", extensions: ["json"] }],
     });
     if (result.canceled) return false;
-    await fsp.writeFile(
-      result.filePath,
-      JSON.stringify(
-        {
-          version: 1,
-          preferences: store.data.games.map((g) => ({
-            id: g.id,
-            name: g.name,
-            provider: g.provider,
-            favorite: g.favorite,
-            hidden: g.hidden,
-            notes: g.notes,
-            customName: g.customName,
-            statusOverride: g.statusOverride,
-            lastPlayed: g.lastPlayed,
-            metadata: g.metadata,
-          })),
-          settings: { folders: store.data.settings.folders },
-        },
-        null,
-        2,
-      ),
-      "utf8",
-    );
+    await writeBackup(result.filePath, await createBackup(store));
     return true;
   });
   handle("library:import", async () => {
     const result = await dialog.showOpenDialog(win, {
-      title: "Restaurar preferencias",
+      title: "Restaurar biblioteca y portadas",
       properties: ["openFile"],
-      filters: [{ name: "Respaldo JSON", extensions: ["json"] }],
+      filters: [{ name: "Respaldo de Orbit", extensions: ["json"] }],
     });
     if (result.canceled) return false;
-    const stat = await fsp.stat(result.filePaths[0]);
-    if (stat.size > 10 * 1024 * 1024)
-      throw new Error("El respaldo supera el tamaño permitido.");
-    const data = JSON.parse(await fsp.readFile(result.filePaths[0], "utf8"));
-    if (data.version !== 1 || !Array.isArray(data.preferences))
-      throw new Error("Este archivo no es un respaldo de Orbit Games.");
-    let count = 0;
-    for (const pref of data.preferences) {
-      const g = store.data.games.find((g) => g.id === pref.id);
-      if (!g) continue;
-      for (const k of ["favorite", "hidden"])
-        if (typeof pref[k] === "boolean") g[k] = pref[k];
-      for (const k of ["notes", "customName"])
-        if (typeof pref[k] === "string")
-          g[k] = pref[k].slice(0, k === "notes" ? 5000 : 200);
-      if (
-        ["auto", "installed", "uninstalled", "unknown"].includes(
-          pref.statusOverride,
-        )
-      )
-        g.statusOverride = pref.statusOverride;
-      count++;
-    }
-    await save();
-    return count;
+    const backup = await readBackup(result.filePaths[0], (bytes) => {
+      const image = nativeImage.createFromBuffer(bytes);
+      const size = image.getSize();
+      return !image.isEmpty() && size.width <= 20000 && size.height <= 20000;
+    });
+    const existing = new Set(store.data.games.map((g) => g.id));
+    const additions = backup.games.filter((g) => !existing.has(g.id)).length;
+    const confirmation = await dialog.showMessageBox(win, {
+      type: "question",
+      title: "Revisar restauración",
+      message: backup.legacy
+        ? "Restaurar preferencias de una copia anterior"
+        : "Restaurar biblioteca y portadas",
+      detail: backup.legacy
+        ? `Se aplicarán preferencias a ${backup.games.length - additions} juegos existentes. Esta copia antigua no contiene portadas ni permite agregar juegos.`
+        : `${additions} juegos nuevos, ${backup.games.length - additions} juegos existentes y ${backup.artwork.length} portadas. Se reemplazarán las preferencias y portadas incluidas para esos juegos; los demás se conservan. Las rutas de juegos existentes se mantienen. Los juegos nuevos pueden incluir ejecutables y argumentos: restaura solo copias de confianza. No se ejecutará ningún juego. Las cuentas y carpetas vigiladas actuales se conservan.`,
+      buttons: ["Cancelar", "Restaurar"],
+      defaultId: 0,
+      cancelId: 0,
+      noLink: true,
+    });
+    if (confirmation.response !== 1) return false;
+    return restoreBackup(store, backup, save);
   });
   handle("window:action", (action) => {
     if (action === "minimize") win.minimize();

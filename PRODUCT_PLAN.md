@@ -54,6 +54,8 @@ Para cada plataforma: separar detección local, consulta de biblioteca, autentic
 
 ## Secuencia de trabajo
 
+Respaldo posterior a alfa 2: formato portable v2 con catálogo, rutas/opciones manuales, preferencias, fichas y portadas locales; selección explícita de campos excluye cuentas y credenciales. Importación validada y confirmación con resumen; combina sin borrar juegos ajenos a la copia, conserva rutas actuales y admite preferencias v1. Portadas preparadas por hash antes de guardar, sin sobrescribir imágenes activas. Nuevas entradas quedan sin verificar. Las carpetas de detección y sesiones se conservan, no se transfieren. 45 pruebas automatizadas, compilación y recorridos de escritorio/respaldo pasan, incluido reinicio en otro perfil. Faltan cancelación durante archivos grandes, validación empaquetada/Windows 10 y migraciones futuras; DATA continúa parcial.
+
 Estado de Ubisoft Connect posterior a alfa 2: conector comunitario experimental con ventana de autenticación propia, renovación de sesión, almacenamiento cifrado y consulta de accesos declarados como propios. Excluye accesos expirados/revocados y no presenta el historial como propiedad. Señala que la edición para PC requiere verificación. Las 42 pruebas automatizadas y `qa-ubisoft.cjs` pasan; este último usa respuestas controladas y comprueba conexión, renovación, desconexión y ausencia de secretos en la biblioteca enviada a la interfaz. Login real, suscripciones, cobertura completa y condiciones de distribución siguen pendientes. Este código aún no está incluido en el paquete alfa 2.
 
 1. Persistencia recuperable y unión no destructiva de fuentes, contratos y fixtures de proveedores.

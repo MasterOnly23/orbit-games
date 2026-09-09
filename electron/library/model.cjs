@@ -127,6 +127,7 @@ function mergeGames(detected, previous = []) {
       metadataCheckedAt: old?.metadataCheckedAt,
       customName: old?.customName || "",
       artworkRevision: old?.artworkRevision || null,
+      artworkFile: old?.artworkFile,
       launchOptions: old?.launchOptions || candidate.launchOptions,
       accountAccessNote: old?.accountAccessNote || candidate.accountAccessNote,
       accountEntitlements:

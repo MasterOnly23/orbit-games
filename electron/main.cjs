@@ -1,3 +1,4 @@
+const { artworkName } = require("./library/backup.cjs");
 const {
   app,
   BrowserWindow,
@@ -289,9 +290,12 @@ if (locked)
         const id = url.pathname.slice(1);
         if (url.hostname !== "game" || !/^\w{20}$/.test(id))
           return new Response("Not found", { status: 404 });
+        const game = store.data.games.find((entry) => entry.id === id);
+        if (!game) return new Response("Not found", { status: 404 });
         return net.fetch(
-          pathToFileURL(path.join(store.directory, "artwork", `${id}.jpg`))
-            .href,
+          pathToFileURL(
+            path.join(store.directory, "artwork", artworkName(game)),
+          ).href,
         );
       });
       createWindow();
