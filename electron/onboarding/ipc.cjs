@@ -24,11 +24,12 @@ function registerOnboarding({
   let preview = null,
     busy = false;
   let searchController = null;
-  handle("setup:cancel", () => {
+  const cancel = () => {
     if (!searchController) return false;
     searchController.abort(new Error("Búsqueda cancelada."));
     return true;
-  });
+  };
+  handle("setup:cancel", cancel);
   handle("setup:suggestions", () => folderSuggestions(desktop));
   handle("setup:preview", async (options) => {
     if (busy) throw new Error("La búsqueda anterior sigue en curso.");
@@ -140,6 +141,7 @@ function registerOnboarding({
       busy = false;
     }
   });
+  return { cancel };
 }
 
 module.exports = { registerOnboarding };

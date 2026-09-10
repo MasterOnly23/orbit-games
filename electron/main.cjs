@@ -1,4 +1,5 @@
 const { createScanService } = require("./library/scan-service.cjs");
+const { createLifecycle } = require("./lifecycle.cjs");
 const { createItchProvider } = require("./accounts/itch.cjs");
 const { artworkName } = require("./library/backup.cjs");
 const {
@@ -44,6 +45,11 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 const locked = app.requestSingleInstanceLock();
+const lifecycle = createLifecycle();
+let shutdownReady = false,
+  shutdownTask,
+  accounts,
+  onboarding;
 if (!locked) {
   app.quit();
 }
@@ -89,7 +95,7 @@ function setWatchers(paths) {
   clearTimeout(scanTimer);
   watchers.forEach((w) => w.close());
   watchers = [];
-  if (!store.data.settings.autoScan) return;
+  if (quitting || !store.data.settings.autoScan) return;
   for (const dir of paths) {
     try {
       const watcher = fs.watch(dir, { recursive: false }, () => {
@@ -109,10 +115,16 @@ function report(error) {
 }
 let libraryScan;
 async function scan() {
-  return libraryScan ? libraryScan.run() : snapshot();
+  if (quitting) return snapshot();
+  return lifecycle.run(() => (libraryScan ? libraryScan.run() : snapshot()));
 }
-async function enrich() {
-  if (metadataRunning || !store.data.settings.onlineMetadata) return;
+function enrich() {
+  if (quitting) return Promise.resolve();
+  return lifecycle.run(enrichLibrary);
+}
+async function enrichLibrary() {
+  if (quitting || metadataRunning || !store.data.settings.onlineMetadata)
+    return;
   metadataRunning = true;
   try {
     for (const candidate of store.data.games) {
@@ -152,7 +164,7 @@ function handle(channel, callback) {
       event.senderFrame !== win.webContents.mainFrame
     )
       throw new Error("Origen no autorizado.");
-    return callback(...args);
+    return lifecycle.run(() => callback(...args));
   });
 }
 function createWindow() {
@@ -186,6 +198,9 @@ function createWindow() {
     if (store.data.settings.closeToTray && !quitting) {
       event.preventDefault();
       win.hide();
+    } else if (!shutdownReady) {
+      event.preventDefault();
+      app.quit();
     }
   });
   win.once("ready-to-show", () => win.show());
@@ -231,10 +246,44 @@ app.on("second-instance", () => {
     win.focus();
   }
 });
-app.on("before-quit", () => {
+app.on("before-quit", (event) => {
+  if (shutdownReady || !store) return;
+  event.preventDefault();
+  if (shutdownTask) return;
   quitting = true;
   clearTimeout(scanTimer);
   watchers.forEach((w) => w.close());
+  watchers = [];
+  shutdownTask = lifecycle
+    .drain(
+      () => {
+        libraryScan?.cancel();
+        accounts?.cancel();
+        onboarding?.cancel();
+      },
+      () => store.flush(),
+    )
+    .then(() => {
+      shutdownReady = true;
+      app.quit();
+    })
+    .catch(() => {
+      quitting = false;
+      lifecycle.resume();
+      if (win && !win.isDestroyed()) win.show();
+      dialog.showErrorBox(
+        "No se pudo terminar de guardar",
+        "Orbit sigue abierto porque falló el guardado de la biblioteca. Comprueba el espacio y el acceso al disco, vuelve a guardar tus cambios e intenta salir de nuevo.",
+      );
+      if (store.writable)
+        setWatchers([
+          ...store.data.settings.folders,
+          ...(store.data.settings.gameFolders || []),
+        ]);
+    })
+    .finally(() => {
+      shutdownTask = null;
+    });
 });
 app.on("window-all-closed", () => app.quit());
 if (locked)
@@ -285,7 +334,7 @@ if (locked)
         ubisoft,
         ...(itch ? { itch } : {}),
       };
-      const accounts = createAccountService({
+      accounts = createAccountService({
         store,
         save,
         readSession: (options) =>
@@ -326,7 +375,7 @@ if (locked)
         loginOptions,
         inventoryScript,
       });
-      registerOnboarding({
+      onboarding = registerOnboarding({
         handle,
         store,
         save,

@@ -128,5 +128,13 @@ class LibraryStore {
     if (!game) throw new Error("El juego ya no está en la biblioteca.");
     return game;
   }
+  async flush() {
+    // A caller may enqueue another snapshot while the previous one completes.
+    let current;
+    do {
+      current = this.queue;
+      await current;
+    } while (current !== this.queue);
+  }
 }
 module.exports = { LibraryStore };
