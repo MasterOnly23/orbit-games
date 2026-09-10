@@ -1,5 +1,7 @@
 # Orbit Games Next
 
+Mapa de responsabilidades y reglas para ampliar el proyecto: [ARCHITECTURE.md](ARCHITECTURE.md).
+
 Biblioteca de juegos para Windows en desarrollo. La rama `feature/orbit-next-onboarding` mantiene una aplicación independiente de Orbit Games 1.0.0. El objetivo público exige Windows 10 y 11 x64; esa compatibilidad aún no está acreditada en ambos sistemas.
 
 ## Alfa 4

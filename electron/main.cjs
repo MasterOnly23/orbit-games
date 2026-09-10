@@ -1,41 +1,22 @@
+const { createMainWindow } = require("./desktop/main-window.cjs");
+const { registerAccounts } = require("./accounts/register.cjs");
+const { createEnrichmentService } = require("./library/enrichment.cjs");
 const { createScanService } = require("./library/scan-service.cjs");
 const { createLifecycle } = require("./lifecycle.cjs");
 const { isTrustedAppSender } = require("./ipc-origin.cjs");
-const { createItchProvider } = require("./accounts/itch.cjs");
+
 const { artworkName } = require("./library/backup.cjs");
-const {
-  app,
-  BrowserWindow,
-  ipcMain,
-  dialog,
-  shell,
-  Menu,
-  Tray,
-  nativeImage,
-  protocol,
-  net,
-  safeStorage,
-} = require("electron");
+const { app, ipcMain, dialog, protocol, net } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { LibraryStore } = require("./library/store.cjs");
-const { scanLibrary, exists } = require("./library/scanner.cjs");
-const { matchMetadata } = require("./library/metadata.cjs");
+const { scanLibrary } = require("./library/scanner.cjs");
+
 const { registerIpc } = require("./ipc.cjs");
 const { identity, configureRuntime } = require("./runtime.cjs");
 const { registerOnboarding } = require("./onboarding/ipc.cjs");
-const { createAccountService } = require("./accounts/service.cjs");
-const {
-  readProviderSession,
-  clearProviderSession,
-} = require("./accounts/auth-window.cjs");
-const { steam } = require("./accounts/steam.cjs");
-const { gog } = require("./accounts/gog.cjs");
-const { epic } = require("./accounts/epic.cjs");
-const { humble } = require("./accounts/humble.cjs");
-const { ubisoft } = require("./accounts/ubisoft.cjs");
-const { CredentialVault } = require("./accounts/vault.cjs");
+
 const { findExecutableCandidates } = require("./onboarding/discovery.cjs");
 const { fileAvailability } = require("./library/availability.cjs");
 configureRuntime(app);
@@ -59,7 +40,6 @@ let win,
   tray,
   quitting = false,
   scanning = false,
-  metadataRunning = false,
   scanTimer,
   watchers = [];
 const indexPath = path.join(__dirname, "..", "dist", "index.html");
@@ -114,122 +94,20 @@ function report(error) {
   store.data.warnings = [error.message];
   notify();
 }
-let libraryScan;
+let libraryScan, enrichment;
 async function scan() {
   if (quitting) return snapshot();
   return lifecycle.run(() => (libraryScan ? libraryScan.run() : snapshot()));
 }
 function enrich() {
   if (quitting) return Promise.resolve();
-  return lifecycle.run(enrichLibrary);
-}
-async function enrichLibrary() {
-  if (quitting || metadataRunning || !store.data.settings.onlineMetadata)
-    return;
-  metadataRunning = true;
-  try {
-    for (const candidate of store.data.games) {
-      if (quitting || !store.data.settings.onlineMetadata) break;
-      if (
-        candidate.metadata ||
-        candidate.hidden ||
-        (candidate.metadataCheckedAt &&
-          Date.now() - Date.parse(candidate.metadataCheckedAt) < 7 * 86400000)
-      )
-        continue;
-      try {
-        const meta = await matchMetadata(candidate);
-        const current = store.getGame(candidate.id);
-        if (!current.metadata) current.metadata = meta;
-        current.metadataCheckedAt = new Date().toISOString();
-        await save();
-      } catch {
-        // A failed request is not a negative match. Retry on a later scan.
-      }
-      await new Promise((resolve) => setTimeout(resolve, 650));
-    }
-    await store.save();
-  } finally {
-    metadataRunning = false;
-  }
+  return lifecycle.run(() => enrichment.run());
 }
 function handle(channel, callback) {
   ipcMain.handle(channel, async (event, ...args) => {
     if (!isTrustedAppSender(event, win?.webContents, { devUrl, indexPath }))
       throw new Error("Origen no autorizado.");
     return lifecycle.run(() => callback(...args));
-  });
-}
-function createWindow() {
-  win = new BrowserWindow({
-    width: 1480,
-    height: 950,
-    minWidth: 1000,
-    minHeight: 700,
-    title: identity.name,
-    backgroundColor: "#0d1016",
-    show: false,
-    titleBarStyle: "hidden",
-    titleBarOverlay: { color: "#101319", symbolColor: "#bfc3ce", height: 38 },
-    icon: path.join(__dirname, "..", "assets", "icon.ico"),
-    webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      webSecurity: true,
-    },
-  });
-  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
-  win.webContents.on("will-navigate", (event, url) => {
-    if (url !== win.webContents.getURL()) event.preventDefault();
-  });
-  win.webContents.session.setPermissionRequestHandler((_w, _p, callback) =>
-    callback(false),
-  );
-  win.on("close", (event) => {
-    if (store.data.settings.closeToTray && !quitting) {
-      event.preventDefault();
-      win.hide();
-    } else if (!shutdownReady) {
-      event.preventDefault();
-      app.quit();
-    }
-  });
-  win.once("ready-to-show", () => win.show());
-  if (devUrl) win.loadURL(devUrl);
-  else win.loadFile(indexPath);
-  win.on("focus", () => {
-    if (
-      store.data.onboarding?.completedAt &&
-      store.data.settings.autoScan &&
-      Date.now() - Date.parse(store.data.scannedAt || 0) > 180000
-    )
-      scan().catch(report);
-  });
-  Menu.setApplicationMenu(null);
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname, "..", "assets", "icon.ico"),
-  );
-  tray = new Tray(icon);
-  tray.setToolTip(identity.name);
-  tray.setContextMenu(
-    Menu.buildFromTemplate([
-      {
-        label: "Abrir Orbit Games Next",
-        click: () => {
-          win.show();
-          win.focus();
-        },
-      },
-      { label: "Buscar juegos nuevos", click: () => scan().catch(report) },
-      { type: "separator" },
-      { label: "Salir", click: () => app.quit() },
-    ]),
-  );
-  tray.on("double-click", () => {
-    win.show();
-    win.focus();
   });
 }
 app.on("second-instance", () => {
@@ -286,6 +164,11 @@ if (locked)
       app.setAppUserModelId(identity.appId);
       store = new LibraryStore(app.getPath("userData"), app.getPath("desktop"));
       await store.load();
+      enrichment = createEnrichmentService({
+        store,
+        save,
+        isQuitting: () => quitting,
+      });
       libraryScan = createScanService({
         store,
         snapshot,
@@ -316,45 +199,23 @@ if (locked)
           ).href,
         );
       });
-      createWindow();
-      const vault = new CredentialVault(store.directory, safeStorage);
-      const itch = createItchProvider(process.env.ORBIT_ITCH_CLIENT_ID);
-      const providers = {
-        steam,
-        gog,
-        epic,
-        humble,
-        ubisoft,
-        ...(itch ? { itch } : {}),
-      };
-      accounts = createAccountService({
+      ({ win, tray } = createMainWindow({
+        store,
+        isQuitting: () => quitting,
+        canClose: () => shutdownReady,
+        scan,
+        report,
+        devUrl,
+        indexPath,
+        appRoot: path.join(__dirname, ".."),
+      }));
+      accounts = registerAccounts({
         store,
         save,
-        readSession: (options) =>
-          options.provider.connectSession
-            ? options.provider.connectSession({
-                ...options,
-                vault,
-                readAuth: (provider = options.provider) =>
-                  readProviderSession({ ...options, provider, parent: win }),
-              })
-            : readProviderSession({ ...options, parent: win }),
-        clearSession: async (partition, id) => {
-          await clearProviderSession(partition);
-          await vault.remove(id);
-        },
-        providers,
+        win,
+        handle,
+        itchClientId: process.env.ORBIT_ITCH_CLIENT_ID,
       });
-      handle("accounts:providers", () =>
-        Object.values(providers).map((provider) => ({
-          id: provider.id,
-          name: provider.name === "Ubisoft" ? "Ubisoft Connect" : provider.name,
-        })),
-      );
-      handle("accounts:connect", (provider) => accounts.connect(provider));
-      handle("accounts:cancel", () => accounts.cancel());
-      handle("accounts:sync", (id) => accounts.sync(id));
-      handle("accounts:disconnect", (id) => accounts.disconnect(id));
       registerIpc({
         win,
         store,
