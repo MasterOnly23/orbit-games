@@ -1,5 +1,6 @@
 const { createScanService } = require("./library/scan-service.cjs");
 const { createLifecycle } = require("./lifecycle.cjs");
+const { isTrustedAppSender } = require("./ipc-origin.cjs");
 const { createItchProvider } = require("./accounts/itch.cjs");
 const { artworkName } = require("./library/backup.cjs");
 const {
@@ -154,15 +155,7 @@ async function enrichLibrary() {
 }
 function handle(channel, callback) {
   ipcMain.handle(channel, async (event, ...args) => {
-    const url = event.senderFrame?.url || "";
-    const trusted = devUrl
-      ? url.startsWith(devUrl)
-      : url.split("?")[0] === pathToFileURL(indexPath).href;
-    if (
-      !trusted ||
-      event.sender !== win?.webContents ||
-      event.senderFrame !== win.webContents.mainFrame
-    )
+    if (!isTrustedAppSender(event, win?.webContents, { devUrl, indexPath }))
       throw new Error("Origen no autorizado.");
     return lifecycle.run(() => callback(...args));
   });
