@@ -4,6 +4,16 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
 
+async function waitForLibrary(page, predicate, timeout = 90000) {
+  const deadline = Date.now() + timeout;
+  while (true) {
+    const library = await page.evaluate(() => window.orbit.getLibrary());
+    if (predicate(library)) return library;
+    if (Date.now() >= deadline) throw new Error("Library state wait timed out");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
 (async () => {
   const output = path.resolve("output/playwright");
   await fs.mkdir(output, { recursive: true });
@@ -195,11 +205,11 @@ const crypto = require("node:crypto");
     await page
       .getByRole("button", { name: "Usar una imagen de mi PC", exact: true })
       .click();
-    await page.waitForFunction(
-      async () =>
-        (await window.orbit.getLibrary()).games.find(
-          (g) => g.name === "Orbit QA Adventure",
-        )?.artworkRevision,
+    await waitForLibrary(
+      page,
+      (library) =>
+        library.games.find((g) => g.name === "Orbit QA Adventure")
+          ?.artworkRevision,
     );
     await page
       .getByText("Opciones del ejecutable o lanzador propio", { exact: true })
@@ -228,11 +238,7 @@ const crypto = require("node:crypto");
     page = await application.firstWindow();
     observe(page);
     await page.waitForSelector(".game-grid", { timeout: 90000 });
-    await page.waitForFunction(
-      () => !document.querySelector(".scan-button")?.disabled,
-      null,
-      { timeout: 90000 },
-    );
+    await waitForLibrary(page, (library) => !library.scanning);
     assert.equal(
       await page
         .getByRole("heading", { name: "Tus juegos empiezan aquí" })
@@ -294,6 +300,48 @@ const crypto = require("node:crypto");
         .getAttribute("src")
         .then((src) => src.startsWith("orbit-art:")),
     );
+    if (fromSource) {
+      await page.evaluate(() => window.orbit.settings({ autoScan: false }));
+      await waitForLibrary(page, (library) => !library.scanning);
+      const beforeCancel = await page.evaluate(() => window.orbit.getLibrary());
+      await application.evaluate((_electron, folder) => {
+        const filesystem = process.mainModule.require("node:fs/promises"),
+          original = filesystem.readdir;
+        globalThis.orbitLibraryQaWaiting = false;
+        filesystem.readdir = async (...args) => {
+          if (String(args[0]).toLowerCase() !== folder.toLowerCase())
+            return original(...args);
+          filesystem.readdir = original;
+          globalThis.orbitLibraryQaWaiting = true;
+          await new Promise((resolve) => {
+            globalThis.orbitLibraryQaRelease = resolve;
+          });
+          return original(...args);
+        };
+      }, fixture);
+      await page
+        .getByRole("button", { name: "Detectar juegos nuevos", exact: true })
+        .click();
+      const deadline = Date.now() + 90000;
+      while (
+        !(await application.evaluate(() => globalThis.orbitLibraryQaWaiting))
+      ) {
+        if (Date.now() > deadline)
+          throw new Error("Library scan did not reach controlled folder read");
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      await page
+        .getByRole("button", { name: "Detener detección", exact: true })
+        .click();
+      await page
+        .getByRole("button", { name: "Detectar juegos nuevos", exact: true })
+        .waitFor();
+      const afterCancel = await page.evaluate(() => window.orbit.getLibrary());
+      assert.deepEqual(afterCancel.games, beforeCancel.games);
+      assert.equal(afterCancel.scannedAt, beforeCancel.scannedAt);
+      assert.deepEqual(afterCancel.discovery, beforeCancel.discovery);
+      await application.evaluate(() => globalThis.orbitLibraryQaRelease());
+    }
     await fs.writeFile(
       path.join(fixture, "Orbit QA New Arrival.exe"),
       "Non executable QA fixture. Never launched.",

@@ -10,6 +10,7 @@ import {
   Plus,
   Search,
   RefreshCw,
+  Square,
   ChevronDown,
   Gamepad2,
   ArrowUpRight,
@@ -268,13 +269,38 @@ export default function App() {
             <button
               className={`button scan-button ${library?.scanning ? "scanning" : ""}`}
               onClick={() =>
-                action(() => window.orbit.scan(), "Biblioteca actualizada")
+                library?.scanning
+                  ? action(
+                      () => window.orbit.cancelScan(),
+                      (stopped) =>
+                        stopped
+                          ? "Deteniendo detección…"
+                          : "La detección ya está finalizando",
+                    )
+                  : action(
+                      () => window.orbit.scan(),
+                      (result) =>
+                        result.scanCancelled
+                          ? "Detección detenida. Se conserva tu biblioteca"
+                          : "Biblioteca actualizada",
+                    )
               }
-              disabled={library?.scanning}
-              title="Detectar juegos nuevos"
-              aria-label="Detectar juegos nuevos"
+              title={
+                library?.scanning
+                  ? "Detener detección"
+                  : "Detectar juegos nuevos"
+              }
+              aria-label={
+                library?.scanning
+                  ? "Detener detección"
+                  : "Detectar juegos nuevos"
+              }
             >
-              <RefreshCw size={17} />
+              {library?.scanning ? (
+                <Square size={17} className="scan-stop" />
+              ) : (
+                <RefreshCw size={17} />
+              )}
             </button>
             <button
               className="button add-button"

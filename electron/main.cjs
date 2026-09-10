@@ -1,3 +1,4 @@
+const { createScanService } = require("./library/scan-service.cjs");
 const { createItchProvider } = require("./accounts/itch.cjs");
 const { artworkName } = require("./library/backup.cjs");
 const {
@@ -18,7 +19,6 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { LibraryStore } = require("./library/store.cjs");
 const { scanLibrary, exists } = require("./library/scanner.cjs");
-const { mergeGames } = require("./library/model.cjs");
 const { matchMetadata } = require("./library/metadata.cjs");
 const { registerIpc } = require("./ipc.cjs");
 const { identity, configureRuntime } = require("./runtime.cjs");
@@ -34,10 +34,7 @@ const { epic } = require("./accounts/epic.cjs");
 const { humble } = require("./accounts/humble.cjs");
 const { ubisoft } = require("./accounts/ubisoft.cjs");
 const { CredentialVault } = require("./accounts/vault.cjs");
-const {
-  findExecutableCandidates,
-  unknownCandidates,
-} = require("./onboarding/discovery.cjs");
+const { findExecutableCandidates } = require("./onboarding/discovery.cjs");
 const { fileAvailability } = require("./library/availability.cjs");
 configureRuntime(app);
 protocol.registerSchemesAsPrivileged([
@@ -110,48 +107,9 @@ function report(error) {
   store.data.warnings = [error.message];
   notify();
 }
+let libraryScan;
 async function scan() {
-  if (!store.data.onboarding?.completedAt) return snapshot();
-  if (scanning) return snapshot();
-  scanning = true;
-  notify();
-  try {
-    const result = await scanLibrary(
-      store.data.settings.folders,
-      inventoryScript,
-    );
-    store.data.games = mergeGames(result.games, store.data.games);
-    for (const game of store.data.games.filter(
-      (g) => g.manual && g.launch?.kind === "file",
-    )) {
-      Object.assign(
-        game,
-        await fileAvailability(game.targetExecutable || game.launch.target),
-      );
-    }
-    const extra = await findExecutableCandidates(
-      store.data.settings.gameFolders || [],
-    );
-    store.data.discovery = {
-      candidates: unknownCandidates(extra.candidates, store.data.games),
-      checkedAt: new Date().toISOString(),
-    };
-    store.data.scannedAt = result.scannedAt;
-    store.data.warnings = [...result.warnings, ...extra.warnings];
-    setWatchers([
-      ...result.watchPaths,
-      ...(store.data.settings.gameFolders || []),
-    ]);
-    await store.save();
-  } catch (error) {
-    report(error);
-    throw error;
-  } finally {
-    scanning = false;
-    notify();
-  }
-  enrich().catch(report);
-  return snapshot();
+  return libraryScan ? libraryScan.run() : snapshot();
 }
 async function enrich() {
   if (metadataRunning || !store.data.settings.onlineMetadata) return;
@@ -286,6 +244,23 @@ if (locked)
       app.setAppUserModelId(identity.appId);
       store = new LibraryStore(app.getPath("userData"), app.getPath("desktop"));
       await store.load();
+      libraryScan = createScanService({
+        store,
+        snapshot,
+        scanLocal: (folders, options) =>
+          scanLibrary(folders, inventoryScript, options),
+        discover: findExecutableCandidates,
+        availability: fileAvailability,
+        setScanning: (value) => {
+          scanning = value;
+          notify();
+        },
+        setWatchers,
+        onError: report,
+        onCommitted: () => enrich().catch(report),
+      });
+      handle("library:cancel", () => libraryScan.cancel());
+
       protocol.handle("orbit-art", (request) => {
         const url = new URL(request.url);
         const id = url.pathname.slice(1);
