@@ -2,9 +2,9 @@
 
 Biblioteca de juegos para Windows en desarrollo. La rama `feature/orbit-next-onboarding` mantiene una aplicación independiente de Orbit Games 1.0.0. El objetivo público exige Windows 10 y 11 x64; esa compatibilidad aún no está acreditada en ambos sistemas.
 
-## Alfa 3
+## Alfa 4
 
-La versión `0.2.0-alpha.3` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 3](RELEASE_ALPHA3.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
+La versión `0.2.0-alpha.4` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 4](RELEASE_ALPHA4.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
 
 ## Convivencia con Orbit actual
 
@@ -14,7 +14,7 @@ La versión `0.2.0-alpha.3` reúne el asistente inicial, detección de juegos, c
 | Aplicación | Orbit Games | Orbit Games Next |
 | Identificador | `com.pipe.orbitgames` | `com.pipe.orbitgames.next` |
 | Perfil | `%APPDATA%\Orbit Games` | `%APPDATA%\Orbit Games Next` |
-| Salida actual | `release/` | `release-next/alpha3/` |
+| Salida actual | `release/` | `release-next/alpha4/` |
 | Inicio con Windows | Entrada de Orbit | Entrada `OrbitGamesNext` |
 
 Next no importa ni modifica automáticamente el perfil de Orbit actual. Ambas aplicaciones pueden ejecutarse a la vez. Las distintas alfas de Next comparten su perfil de Next; cierra una alfa de Next antes de abrir otra, porque la protección de instancia única puede enfocar la que ya está abierta. No hace falta cerrar Orbit Games 1.0.0.
@@ -26,16 +26,18 @@ Las pruebas usan perfiles nuevos dentro de `%APPDATA%\Orbit Games Next\qa`. Se r
 Ejecuta `ABRIR_ORBIT_NEXT.cmd` en este checkout, o abre:
 
 ```powershell
-& '.\release-next\alpha3\win-unpacked\Orbit Games Next.exe'
+& '.\release-next\alpha4\win-unpacked\Orbit Games Next.exe'
 ```
 
-Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No requiere Node.js para ejecutarse. El instalador NSIS se genera en `release-next/alpha3/`; generarlo no lo instala. La alfa no tiene firma comercial ni actualización automática.
+Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No requiere Node.js para ejecutarse. El instalador NSIS se genera en `release-next/alpha4/`; generarlo no lo instala. La alfa no tiene firma comercial ni actualización automática.
 
 ## Funciones disponibles
 
-El código posterior al paquete alfa 3 incorpora **Ajustes → Exportar diagnóstico**. Guarda un JSON local con versiones, recuentos, estado de conexiones y códigos de error. No incluye nombres, rutas, notas, imágenes ni credenciales, y no lo envía automáticamente. No es un respaldo de la biblioteca.
+Alfa 4 añade etiquetas personales y filtro combinable, cancelación del escaneo general y cierre coordinado que espera los guardados pendientes. Si falla la escritura al salir, Orbit permanece abierto para permitir corregir el problema y guardar de nuevo.
 
-El código posterior al paquete alfa 3 añade **Detener búsqueda** al asistente: permite cancelar, corregir carpetas y reintentar sin guardar resultados. El guardado final debe terminar. Los cambios de paso llevan el foco al título para navegación por teclado.
+Alfa 4 incorpora **Ajustes → Exportar diagnóstico**. Guarda un JSON local con versiones, recuentos, estado de conexiones y códigos de error. No incluye nombres, rutas, notas, imágenes ni credenciales, y no lo envía automáticamente. No es un respaldo de la biblioteca.
+
+Alfa 4 añade **Detener búsqueda** al asistente: permite cancelar, corregir carpetas y reintentar sin guardar resultados. El guardado final debe terminar. Los cambios de paso llevan el foco al título para navegación por teclado.
 
 - Asistente: carpetas, revisión de candidatos, cuentas opcionales y guardado. Se puede repetir desde Ajustes.
 - Detección de accesos y fuentes locales de lanzadores. Las carpetas de ejecutables se exploran hasta tres niveles, con límites de 5.000 entradas y 200 candidatos; no se ejecutan los archivos descubiertos. Los candidatos requieren confirmación.
@@ -62,7 +64,7 @@ npm run dev
 npm test
 npm run package
 npm run test:desktop
-$env:ORBIT_TEST_EXE = (Resolve-Path '.\release-next\alpha3\win-unpacked\Orbit Games Next.exe').Path
+$env:ORBIT_TEST_EXE = (Resolve-Path '.\release-next\alpha4\win-unpacked\Orbit Games Next.exe').Path
 node scripts/qa-backup.cjs
 Remove-Item Env:ORBIT_TEST_EXE
 ```

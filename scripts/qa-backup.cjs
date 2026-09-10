@@ -121,7 +121,7 @@ const { LibraryStore } = require("../electron/library/store.cjs");
       ),
     );
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
-    if (!process.env.ORBIT_TEST_EXE) {
+    {
       const diagnosticFile = path.join(root, "diagnostic.json");
       await application.evaluate(({ dialog }) => {
         dialog.showSaveDialog = async () => ({ canceled: true });

@@ -1,7 +1,7 @@
 {
   "name": "orbit-games-next",
   "productName": "Orbit Games Next",
-  "version": "0.2.0-alpha.3",
+  "version": "0.2.0-alpha.4",
   "description": "Orbit Games Next: biblioteca independiente en desarrollo",
   "author": "Pipe",
   "private": true,
@@ -19,7 +19,7 @@
     "appId": "com.pipe.orbitgames.next",
     "asar": true,
     "directories": {
-      "output": "release-next/alpha3"
+      "output": "release-next/alpha4"
     },
     "files": [
       "dist/**/*",

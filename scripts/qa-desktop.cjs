@@ -89,7 +89,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
     await page
       .getByRole("button", { name: "Elegir carpeta de juegos", exact: true })
       .click();
-    if (fromSource) {
+    {
       await application.evaluate((_electron, folder) => {
         const filesystem = process.mainModule.require("node:fs/promises");
         const original = filesystem.readdir;
@@ -222,10 +222,10 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       .getByRole("combobox", { name: "Mi progreso", exact: true })
       .click();
     await page.getByRole("option", { name: "Jugando", exact: true }).click();
-    if (fromSource)
-      await page
-        .getByLabel("Mis etiquetas", { exact: true })
-        .fill("Cooperativo\nCon amigos\ncooperativo");
+
+    await page
+      .getByLabel("Mis etiquetas", { exact: true })
+      .fill("Cooperativo\nCon amigos\ncooperativo");
     await page
       .getByRole("button", { name: "Guardar cambios", exact: true })
       .click();
@@ -250,11 +250,11 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       0,
     );
     const restored = await page.evaluate(() => window.orbit.getLibrary());
-    if (fromSource)
-      assert.deepEqual(
-        restored.games.find((g) => g.name === "Orbit QA Adventure").tags,
-        ["Cooperativo", "Con amigos"],
-      );
+
+    assert.deepEqual(
+      restored.games.find((g) => g.name === "Orbit QA Adventure").tags,
+      ["Cooperativo", "Con amigos"],
+    );
     assert.deepEqual(
       restored.games.find((g) => g.name === "Orbit QA Adventure").launchOptions,
       {
@@ -309,7 +309,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
         .getAttribute("src")
         .then((src) => src.startsWith("orbit-art:")),
     );
-    if (fromSource) {
+    {
       await page.evaluate(() => window.orbit.settings({ autoScan: false }));
       await waitForLibrary(page, (library) => !library.scanning);
       const beforeCancel = await page.evaluate(() => window.orbit.getLibrary());
@@ -394,7 +394,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       })
       .waitFor();
     await page.setViewportSize({ width: 1000, height: 700 });
-    if (fromSource) {
+    {
       const tagged = discovered.games.find(
         (g) => g.name === "Orbit QA Adventure",
       );

@@ -17,8 +17,8 @@ const crypto = require("node:crypto");
   let application;
   try {
     application = await electron.launch({
-      executablePath: require("electron"),
-      args: [path.resolve(".")],
+      executablePath: process.env.ORBIT_TEST_EXE || require("electron"),
+      args: process.env.ORBIT_TEST_EXE ? [] : [path.resolve(".")],
       env,
     });
     const page = await application.firstWindow();
@@ -84,8 +84,8 @@ const crypto = require("node:crypto");
     assert.equal(saved.settings.autoScan, false);
     assert.equal(saved.settings.closeToTray, false);
     application = await electron.launch({
-      executablePath: require("electron"),
-      args: [path.resolve(".")],
+      executablePath: process.env.ORBIT_TEST_EXE || require("electron"),
+      args: process.env.ORBIT_TEST_EXE ? [] : [path.resolve(".")],
       env,
     });
     const retryPage = await application.firstWindow();
