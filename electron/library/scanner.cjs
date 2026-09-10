@@ -1,3 +1,6 @@
+const { scanSteam } = require("./steam-local.cjs");
+const { scanEpic } = require("./epic-local.cjs");
+const { game } = require("./detected-game.cjs");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { execFile } = require("node:child_process");
@@ -8,8 +11,6 @@ const { scanItch } = require("./itch-local.cjs");
 const { abortable } = require("./abortable.cjs");
 const {
   normalize,
-  idFor,
-  parseVdf,
   classifyUri,
   validLaunchUri,
   executableFromIcon,
@@ -37,17 +38,6 @@ async function entries(dir) {
   } catch {
     return [];
   }
-}
-function game(name, provider, identity, props) {
-  return {
-    id: idFor(identity),
-    name,
-    provider,
-    status: "unknown",
-    statusReason: "No se pudo comprobar la instalación.",
-    sources: [],
-    ...props,
-  };
 }
 async function windowsInventory(folders, script, { signal } = {}) {
   signal?.throwIfAborted();
@@ -92,8 +82,6 @@ async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
   const games = [],
     watchPaths = [...folders],
     warnings = [...inventory.warnings];
-  const steamGames = new Map(),
-    epicGames = new Map();
   const riot = await abortable(() => scanRiot(), signal);
   games.push(...riot.games);
   warnings.push(...riot.warnings);
@@ -108,103 +96,17 @@ async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
   games.push(...itch.games);
   warnings.push(...itch.warnings);
   watchPaths.push(...itch.watchPaths);
-  const steamRoot = inventory.steamPath || "C:\\Program Files (x86)\\Steam";
-  const libraries =
-    parseVdf(
-      await read(path.join(steamRoot, "steamapps", "libraryfolders.vdf")),
-    ).libraryfolders || {};
-  const steamPaths = [
-    ...new Set([
-      steamRoot,
-      ...Object.values(libraries)
-        .map((v) => (typeof v === "string" ? v : v.path))
-        .filter(Boolean),
-    ]),
-  ];
-  const missingSteamLibraries = [];
-  for (const library of steamPaths) {
-    const dir = path.join(library, "steamapps");
-    watchPaths.push(dir);
-    if (!(await exists(dir))) {
-      if (inventory.steamPath || library !== steamRoot)
-        missingSteamLibraries.push(library);
-      continue;
-    }
-    for (const file of await entries(dir)) {
-      if (!/^appmanifest_\d+\.acf$/.test(file.name)) continue;
-      const m = parseVdf(await read(path.join(dir, file.name))).AppState;
-      if (
-        !m?.appid ||
-        !m.name ||
-        /Steamworks Common Redistributables|Steam Linux Runtime|Proton/i.test(
-          m.name,
-        )
-      )
-        continue;
-      const installPath = path.join(dir, "common", m.installdir || "");
-      const present = await exists(installPath);
-      const installed = present && (Number(m.StateFlags) & 4) !== 0;
-      const g = game(m.name, "Steam", `steam:${m.appid}`, {
-        steamId: m.appid,
-        providerId: m.appid,
-        status: installed ? "installed" : present ? "unknown" : "uninstalled",
-        statusReason: installed
-          ? "Steam confirma la instalación y la carpeta existe."
-          : present
-            ? "Steam está descargando, actualizando o verificando el juego."
-            : "No se encuentra la carpeta de instalación.",
-        installPath,
-        sizeBytes: Number(m.SizeOnDisk) || 0,
-        launch: { kind: "uri", target: `steam://rungameid/${m.appid}` },
-        sources: [path.join(dir, file.name)],
-      });
-      steamGames.set(m.appid, g);
-      games.push(g);
-    }
+  const io = { read, exists, entries };
+  const steam = await scanSteam({ steamPath: inventory.steamPath, io });
+  const epic = await scanEpic({ io });
+  for (const result of [steam, epic]) {
+    games.push(...result.games);
+    warnings.push(...result.warnings);
+    watchPaths.push(...result.watchPaths);
   }
-  if (missingSteamLibraries.length)
-    warnings.push(
-      "Hay bibliotecas de Steam no accesibles; sus juegos pueden quedar sin verificar.",
-    );
-  const epicDir = path.join(
-    process.env.ProgramData || "C:\\ProgramData",
-    "Epic",
-    "EpicGamesLauncher",
-    "Data",
-    "Manifests",
-  );
-  watchPaths.push(epicDir);
-  for (const f of await entries(epicDir)) {
-    if (!f.name.endsWith(".item")) continue;
-    try {
-      const m = JSON.parse(await read(path.join(epicDir, f.name)));
-      if (!m.bIsApplication || !m.DisplayName || !m.LaunchExecutable) continue;
-      const installed =
-        !m.bIsIncompleteInstall &&
-        (await exists(path.join(m.InstallLocation, m.LaunchExecutable)));
-      const providerId = [m.CatalogNamespace, m.CatalogItemId, m.AppName].join(
-        ":",
-      );
-      const g = game(m.DisplayName, "Epic Games", `epic:${m.AppName}`, {
-        providerId,
-        status: installed ? "installed" : "uninstalled",
-        statusReason: installed
-          ? "Manifiesto de Epic y ejecutable presentes."
-          : "Epic no tiene una instalación completa accesible.",
-        installPath: m.InstallLocation,
-        sizeBytes: m.InstallSize || 0,
-        launch: {
-          kind: "uri",
-          target: `com.epicgames.launcher://apps/${encodeURIComponent(providerId)}?action=launch&silent=true`,
-        },
-        sources: [path.join(epicDir, f.name)],
-      });
-      epicGames.set(m.AppName.toLowerCase(), g);
-      games.push(g);
-    } catch {
-      warnings.push(`No se pudo leer el manifiesto de Epic: ${f.name}`);
-    }
-  }
+  const steamGames = steam.byAppId,
+    epicGames = epic.byAppName,
+    epicDir = epic.manifestDirectory;
   const packages = inventory.packages || [];
   for (const shortcut of inventory.shortcuts) {
     if (!shortcut.target && !shortcut.parsing?.includes("!")) {
