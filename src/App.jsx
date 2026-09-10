@@ -44,6 +44,7 @@ export default function App() {
     [query, setQuery] = useState(""),
     [sort, setSort] = useState("name"),
     [progress, setProgress] = useState("all"),
+    [tag, setTag] = useState(""),
     [filter, setFilter] = useState("all");
   const [selected, setSelected] = useState(
       localStorage.getItem("orbit-selected") || "",
@@ -72,6 +73,16 @@ export default function App() {
       ].sort(),
     [games],
   );
+  const tags = useMemo(() => {
+    const labels = new Map();
+    for (const game of games.filter((g) =>
+      view === "hidden" ? g.hidden : !g.hidden,
+    ))
+      for (const label of game.tags || [])
+        if (!labels.has(label.toLowerCase()))
+          labels.set(label.toLowerCase(), label);
+    return [...labels].sort((a, b) => a[1].localeCompare(b[1], "es"));
+  }, [games, view]);
   const filtered = useMemo(
     () =>
       games
@@ -81,6 +92,10 @@ export default function App() {
         .filter((g) => view !== "recent" || g.lastPlayed)
         .filter((g) => provider === "all" || g.provider === provider)
         .filter((g) => filter === "all" || statusOf(g) === filter)
+        .filter(
+          (g) =>
+            !tag || (g.tags || []).some((label) => label.toLowerCase() === tag),
+        )
         .filter(
           (g) => progress === "all" || (g.playStatus || "none") === progress,
         )
@@ -104,7 +119,7 @@ export default function App() {
               ? Date.parse(b.addedAt) - Date.parse(a.addedAt)
               : nameOf(a).localeCompare(nameOf(b), "es"),
         ),
-    [games, view, provider, filter, progress, query, sort],
+    [games, view, provider, filter, progress, tag, query, sort],
   );
   const selectedGame =
     filtered.find((g) => g.id === selected) ||
@@ -399,6 +414,26 @@ export default function App() {
                   </div>
                 </div>
                 <div className="library-filterbar">
+                  <label className="sort-control">
+                    <span>Etiqueta:</span>
+                    <select
+                      aria-label="Filtrar por etiqueta"
+                      value={tag}
+                      onChange={(event) => setTag(event.target.value)}
+                    >
+                      <option value="">Todas las etiquetas</option>
+                      {tag && !tags.some(([key]) => key === tag) && (
+                        <option value={tag}>
+                          {tag} (sin juegos en esta vista)
+                        </option>
+                      )}
+                      {tags.map(([key, label]) => (
+                        <option key={key} value={key}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <label className="sort-control">
                     <span>Progreso:</span>
                     <select

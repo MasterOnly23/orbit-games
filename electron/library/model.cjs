@@ -123,6 +123,7 @@ function mergeGames(detected, previous = []) {
       hidden: old?.hidden || false,
       notes: old?.notes || "",
       playStatus: old?.playStatus || "none",
+      tags: [...(old?.tags || [])],
       statusOverride: old?.statusOverride || "auto",
       metadata: old?.metadata || null,
       metadataCheckedAt: old?.metadataCheckedAt,

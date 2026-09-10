@@ -222,6 +222,10 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       .getByRole("combobox", { name: "Mi progreso", exact: true })
       .click();
     await page.getByRole("option", { name: "Jugando", exact: true }).click();
+    if (fromSource)
+      await page
+        .getByLabel("Mis etiquetas", { exact: true })
+        .fill("Cooperativo\nCon amigos\ncooperativo");
     await page
       .getByRole("button", { name: "Guardar cambios", exact: true })
       .click();
@@ -246,6 +250,11 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       0,
     );
     const restored = await page.evaluate(() => window.orbit.getLibrary());
+    if (fromSource)
+      assert.deepEqual(
+        restored.games.find((g) => g.name === "Orbit QA Adventure").tags,
+        ["Cooperativo", "Con amigos"],
+      );
     assert.deepEqual(
       restored.games.find((g) => g.name === "Orbit QA Adventure").launchOptions,
       {
@@ -385,6 +394,60 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       })
       .waitFor();
     await page.setViewportSize({ width: 1000, height: 700 });
+    if (fromSource) {
+      const tagged = discovered.games.find(
+        (g) => g.name === "Orbit QA Adventure",
+      );
+      assert.deepEqual(tagged.tags, ["Cooperativo", "Con amigos"]);
+      await page
+        .getByRole("combobox", { name: "Filtrar por etiqueta" })
+        .selectOption("cooperativo");
+      await page
+        .getByRole("button", {
+          name: "Seleccionar Orbit QA Adventure",
+          exact: true,
+        })
+        .waitFor();
+      await assert.rejects(
+        page.evaluate(
+          (id) =>
+            window.orbit.updateGame(id, {
+              tags: ["x".repeat(41)],
+              notes: "Invalid tag changed notes",
+            }),
+          tagged.id,
+        ),
+      );
+      assert.deepEqual(
+        (await page.evaluate(() => window.orbit.getLibrary())).games.find(
+          (g) => g.id === tagged.id,
+        ).tags,
+        tagged.tags,
+      );
+      await page.evaluate(
+        (id) => window.orbit.updateGame(id, { tags: [] }),
+        tagged.id,
+      );
+      await page
+        .getByRole("button", {
+          name: "Seleccionar Orbit QA Adventure",
+          exact: true,
+        })
+        .waitFor({ state: "hidden" });
+      await page.evaluate(
+        ({ id, tags }) => window.orbit.updateGame(id, { tags }),
+        tagged,
+      );
+      await page
+        .getByRole("button", {
+          name: "Seleccionar Orbit QA Adventure",
+          exact: true,
+        })
+        .waitFor();
+      await page
+        .getByRole("combobox", { name: "Filtrar por etiqueta" })
+        .selectOption("");
+    }
     assert.equal(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,

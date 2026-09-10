@@ -40,6 +40,7 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
         notes: game?.notes || "",
         statusOverride: game?.statusOverride || "auto",
         playStatus: game?.playStatus || "none",
+        tags: (game?.tags || []).join("\n"),
         launchArguments: (game?.launchOptions?.args || []).join("\n"),
         workingDirectory: game?.launchOptions?.workingDirectory || "",
       });
@@ -62,12 +63,20 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
             customName: values.name,
             notes: values.notes,
             playStatus: values.playStatus,
+            tags: (values.tags || "")
+              .split(/\r?\n/)
+              .map((tag) => tag.trim())
+              .filter(Boolean),
             statusOverride: values.statusOverride,
             target: values.target,
             launchOptions,
           });
         } else {
           const id = await window.orbit.addGame({
+            tags: (values.tags || "")
+              .split(/\r?\n/)
+              .map((tag) => tag.trim())
+              .filter(Boolean),
             playStatus: values.playStatus,
             name: values.name,
             target: values.target,
@@ -119,6 +128,16 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
           </p>
         </DialogTitle>
         <DialogContent className="form-content">
+          <TextField
+            label="Mis etiquetas"
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={5}
+            helperText="Una etiqueta por línea. Hasta 20 etiquetas de 40 caracteres. Deja vacío para quitarlas."
+            placeholder={"Cooperativo\nPara jugar con amigos"}
+            {...register("tags")}
+          />
           <TextField
             label="Mi progreso"
             select

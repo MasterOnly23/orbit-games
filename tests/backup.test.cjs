@@ -28,6 +28,7 @@ const game = () => ({
   },
   favorite: true,
   playStatus: "completed",
+  tags: ["Cooperativo", "Con amigos"],
   notes: "My progress",
   sources: [],
   status: "installed",
@@ -71,6 +72,7 @@ test("portable backup restores manual games and exact artwork after restart with
   assert.equal(restored.statusOverride, "auto");
   assert.equal(restored.favorite, true);
   assert.equal(restored.playStatus, "completed");
+  assert.deepEqual(restored.tags, game().tags);
   assert.deepEqual(restored.accountEntitlements, []);
   assert.deepEqual(reopened.data.accounts, [{ id: "keep-account" }]);
   assert.deepEqual(reopened.data.settings.folders, ["E:\\Shortcuts"]);

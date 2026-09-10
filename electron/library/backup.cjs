@@ -3,6 +3,7 @@ const path = require("node:path");
 const { createHash, randomUUID } = require("node:crypto");
 const { validLaunchUri } = require("./model.cjs");
 const playStatuses = require("./play-status.json");
+const { validateTags } = require("./tags.cjs");
 
 const MAX_BYTES = 256 * 1024 * 1024;
 const MAX_IMAGE = 20 * 1024 * 1024;
@@ -26,6 +27,7 @@ function artworkName(game) {
 }
 function preferences(value) {
   const result = {};
+  if (value.tags !== undefined) result.tags = validateTags(value.tags);
   if (value.playStatus !== undefined) {
     if (
       typeof value.playStatus !== "string" ||
