@@ -32,7 +32,7 @@ function createScanService({
         const folders = [...store.data.settings.folders];
         const gameFolders = [...(store.data.settings.gameFolders || [])];
         const result = await abortable(
-          () => scanLocal(folders, { signal }),
+          () => scanLocal(folders, { signal, gameFolders }),
           signal,
         );
         const checked = new Map();

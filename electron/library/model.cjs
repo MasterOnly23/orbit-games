@@ -42,6 +42,8 @@ function parseVdf(text) {
   return object();
 }
 function classifyUri(uri) {
+  if (/^itch:\/\/install\?game_id=[1-9]\d*&launch$/i.test(uri))
+    return { provider: "itch.io", providerId: uri.match(/game_id=(\d+)/i)[1] };
   if (/^steam:\/\/(?:rungameid|run)\/\d+\/?$/i.test(uri))
     return { provider: "Steam", steamId: uri.match(/\d+/)[0] };
   if (/^com\.epicgames\.launcher:\/\/apps\//i.test(uri))

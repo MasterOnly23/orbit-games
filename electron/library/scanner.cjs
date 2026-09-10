@@ -4,6 +4,7 @@ const { execFile } = require("node:child_process");
 const { promisify } = require("node:util");
 const run = promisify(execFile);
 const { scanRiot } = require("./riot.cjs");
+const { scanItch } = require("./itch-local.cjs");
 const { abortable } = require("./abortable.cjs");
 const {
   normalize,
@@ -83,7 +84,7 @@ async function windowsInventory(folders, script, { signal } = {}) {
   return JSON.parse(stdout.replace(/^\uFEFF/, ""));
 }
 const scanIo = { read, exists, entries };
-async function scanLibrary(folders, script, { signal } = {}) {
+async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
   const read = (file) => abortable(() => scanIo.read(file), signal);
   const exists = (file) => abortable(() => scanIo.exists(file), signal);
   const entries = (dir) => abortable(() => scanIo.entries(dir), signal);
@@ -97,6 +98,16 @@ async function scanLibrary(folders, script, { signal } = {}) {
   games.push(...riot.games);
   warnings.push(...riot.warnings);
   watchPaths.push(...riot.watchPaths);
+  const itch = await scanItch({
+    roots: [
+      path.join(process.env.APPDATA || "", "itch", "apps"),
+      ...gameFolders,
+    ],
+    signal,
+  });
+  games.push(...itch.games);
+  warnings.push(...itch.warnings);
+  watchPaths.push(...itch.watchPaths);
   const steamRoot = inventory.steamPath || "C:\\Program Files (x86)\\Steam";
   const libraries =
     parseVdf(

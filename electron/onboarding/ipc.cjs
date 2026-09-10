@@ -47,7 +47,7 @@ function registerOnboarding({
         signal,
       );
       const scan = await abortable(
-        () => scanLocal(folders, inventoryScript, { signal }),
+        () => scanLocal(folders, inventoryScript, { signal, gameFolders }),
         signal,
       );
       const extra = await findExecutableCandidates(gameFolders, { signal });

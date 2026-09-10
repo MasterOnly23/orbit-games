@@ -14,6 +14,10 @@ La implementación utiliza código de autorización con PKCE y un estado aleator
 
 ## Cobertura actual y límites
 
+Incremento local posterior a alfa 4: detección de recibos `.itch/receipt.json.gz` en `%APPDATA%\itch\apps` y en las carpetas de juegos configuradas desde el asistente (raíz y dos niveles). Excluye herramientas, descargas temporales y enlaces de directorio, limita el número de carpetas y el tamaño comprimido/descomprimido. Un recibo con archivos presentes cuenta como instalado; sin archivos comprobables queda sin verificar. Esto no demuestra integridad de todos los archivos ni disponibilidad del lanzador. No consulta la base de datos de sesiones ni descubre ubicaciones personalizadas desconocidas para Orbit. Lanzamiento delegado a `itch://install?game_id=ID&launch`; requiere itch instalado y su protocolo registrado, y el lanzador puede pedir instalar si su propio catálogo no reconoce la instalación. Cuentas reales, lanzamiento efectivo y detección de todas las ubicaciones siguen pendientes.
+
+Fuentes de formato y enlace: [manual oficial de butler](https://itch.io/docs/butler/launcher-integration.html), [Receipt](https://github.com/itchio/itch/blob/21f566106db7d66b23a4ed168c535e2011ca3715/src/common/butlerd/messages.ts), [rutas de itch](https://github.com/itchio/itch/blob/21f566106db7d66b23a4ed168c535e2011ca3715/src/main/util/paths.ts) y [enlace de inicio del lanzador](https://github.com/itchio/itch/blob/21f566106db7d66b23a4ed168c535e2011ca3715/src/main/steam/shortcuts.ts). Implementación propia sobre esos formatos; no se distribuye el repositorio de referencia.
+
 - Consulta paginada de accesos comprados o reclamados asociados a la cuenta. No confunde juegos publicados por el usuario con su biblioteca adquirida.
 - Descarta claves de descarga, datos privados de pedidos y campos ajenos al catálogo. Credenciales en el almacén cifrado de Next.
 - Renovación de tokens e identidad comprobada con el perfil. Fallos o páginas inconsistentes conservan la biblioteca anterior.
