@@ -67,6 +67,12 @@ async function scanSteam({ steamPath, io }) {
       "Hay bibliotecas de Steam no accesibles; sus juegos pueden quedar sin verificar.",
     );
 
-  return { games, warnings, watchPaths, byAppId: steamGames };
+  return {
+    games,
+    warnings,
+    watchPaths,
+    byAppId: steamGames,
+    missingLibraries: missingSteamLibraries,
+  };
 }
 module.exports = { scanSteam };
