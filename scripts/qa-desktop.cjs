@@ -490,6 +490,40 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       .getByRole("combobox", { name: "Filtrar por progreso" })
       .selectOption("all");
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
+    if (fromSource) {
+      await page.getByText("Cobertura por plataforma", { exact: true }).click();
+      await page
+        .getByRole("heading", {
+          name: "Amazon Games · Sin conexión de cuenta habilitada",
+          exact: true,
+        })
+        .waitFor();
+      await page
+        .getByRole("heading", {
+          name: "Steam · Conexión experimental disponible",
+          exact: true,
+        })
+        .waitFor();
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Conectar Amazon Games", exact: true })
+          .count(),
+        0,
+      );
+      const coverage = await page.evaluate(() =>
+        window.orbit.accountCoverage(),
+      );
+      assert.equal(coverage.length, 12);
+      assert.equal(
+        coverage.find((item) => item.id === "itch").canConnect,
+        false,
+      );
+      await page.screenshot({
+        path: path.join(output, "next-platform-coverage.png"),
+        animations: "disabled",
+      });
+      await page.getByText("Cobertura por plataforma", { exact: true }).click();
+    }
     await page
       .getByRole("button", { name: "Conectar GOG", exact: true })
       .waitFor();

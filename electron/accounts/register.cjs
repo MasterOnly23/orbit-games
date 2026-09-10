@@ -11,6 +11,7 @@ const { gog } = require("./gog.cjs");
 const { epic } = require("./epic.cjs");
 const { humble } = require("./humble.cjs");
 const { ubisoft } = require("./ubisoft.cjs");
+const { platformCoverage } = require("./coverage.cjs");
 
 function registerAccounts({ store, save, win, handle, itchClientId }) {
   const vault = new CredentialVault(store.directory, safeStorage);
@@ -48,6 +49,7 @@ function registerAccounts({ store, save, win, handle, itchClientId }) {
     })),
   );
   handle("accounts:connect", (provider) => accounts.connect(provider));
+  handle("accounts:coverage", () => platformCoverage(providers));
   handle("accounts:cancel", () => accounts.cancel());
   handle("accounts:sync", (id) => accounts.sync(id));
   handle("accounts:disconnect", (id) => accounts.disconnect(id));

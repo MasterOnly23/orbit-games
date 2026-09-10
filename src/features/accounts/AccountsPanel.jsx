@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, Button, Stack, Typography } from "@mui/material";
+import PlatformCoverage from "./PlatformCoverage";
 
 export default function AccountsPanel({ accounts = [], onBusyChange }) {
   const [providers, setProviders] = useState([]);
@@ -110,6 +111,7 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
           </Stack>
         </Stack>
       ))}
+      <PlatformCoverage />
       {providers.map((provider) => (
         <Button
           key={provider.id}

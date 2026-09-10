@@ -9,6 +9,7 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 | `electron/main.cjs` | Configurar identidad, cargar biblioteca, conectar servicios, comprobar origen IPC y coordinar cierre y tareas de fondo. |
 | `electron/desktop/main-window.cjs` | Crear ventana y bandeja, restricciones de navegación, eventos de foco y comportamiento de cierre. Recibe consultas del estado de cierre; no importa main. |
 | `electron/accounts/register.cjs` | Construir registro de proveedores y almacén cifrado, conectar ventanas de autenticación y registrar comandos de cuentas. Devuelve el servicio cancelable. |
+| `electron/accounts/coverage.cjs` | Describir capacidades y límites de las plataformas y derivar qué conexiones están habilitadas a partir del registro activo. La UI de cobertura no mantiene su propia lista de conexiones habilitadas. |
 | `electron/accounts/<proveedor>.cjs` | Contratos, paginación, autenticación y límites específicos del proveedor. |
 | `electron/accounts/service.cjs` | Coordinar operaciones de cuentas, cancelación, identidad y persistencia. |
 | `electron/library/enrichment.cjs` | Actualizar fichas respetando activación explícita, frecuencia, exclusión de tareas simultáneas y cierre. |
