@@ -103,6 +103,7 @@ async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
   }
   const shortcuts = await scanShortcuts({ inventory, steam, epic, riot, io });
   games.push(...shortcuts.games);
+  warnings.push(...shortcuts.warnings);
   const registry = await scanRegistry({ inventory, knownGames: games, io });
   games.push(...registry.games);
   const xbox = await scanXbox({ inventory, knownGames: games, io });

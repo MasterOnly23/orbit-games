@@ -20,6 +20,81 @@ const io = {
   entries: async () => [],
 };
 
+test("malformed Epic escapes do not abort other shortcuts and uppercase valid URIs still match manifests", async () => {
+  const existing = { sources: [] };
+  const result = await scanShortcuts({
+    inventory: {
+      ...base(),
+      shortcuts: [
+        {
+          name: "Bad",
+          path: "bad.url",
+          url: "com.epicgames.launcher://apps/%?action=launch",
+        },
+        {
+          name: "Escape",
+          path: "escape.url",
+          url: "com.epicgames.launcher://apps/a%2Fb?action=launch",
+        },
+        {
+          name: "Good",
+          path: "good.url",
+          url: "COM.EPICGAMES.LAUNCHER://APPS/space%3Aitem%3AAPP?action=launch",
+        },
+        { name: "Steam", path: "steam.url", url: "steam://rungameid/10" },
+      ],
+    },
+    steam: { byAppId: new Map(), missingLibraries: [] },
+    epic: { byAppName: new Map([["app", existing]]), manifestDirectory: "" },
+    riot: { games: [] },
+    io,
+  });
+  assert.deepEqual(existing.sources, ["good.url"]);
+  assert.equal(result.games.length, 1);
+  assert.equal(result.games[0].provider, "Steam");
+  assert.equal(result.warnings.length, 1);
+});
+
+test("registry path attribution respects directory boundaries and case", async () => {
+  const root = path.resolve("Games", "PublisherGame");
+  const result = await scanShortcuts({
+    inventory: {
+      ...base(),
+      uninstall: [
+        {
+          InstallLocation: root.toUpperCase(),
+          DisplayName: "Registered Game",
+          Publisher: "Electronic Arts",
+        },
+      ],
+      shortcuts: [
+        {
+          name: "Inside",
+          path: "inside.lnk",
+          target: path.join(root, "bin", "game.exe"),
+        },
+        {
+          name: "Sibling",
+          path: "sibling.lnk",
+          target: path.join(root + "-Other", "game.exe"),
+        },
+      ],
+    },
+    steam: { byAppId: new Map(), missingLibraries: [] },
+    epic: { byAppName: new Map() },
+    riot: { games: [] },
+    io: { ...io, exists: async () => true },
+  });
+  assert.equal(
+    result.games.find((g) => g.name === "Inside").provider,
+    "EA app",
+  );
+  assert.equal(
+    result.games.find((g) => g.name === "Sibling").provider,
+    "Otros",
+  );
+});
+
 test("Steam shortcut without manifest stays unknown if a library is inaccessible, otherwise uninstalled", async () => {
   const inventory = {
     ...base(),

@@ -60,10 +60,18 @@ function validLaunchUri(uri) {
     return false;
   const data = classifyUri(uri);
   if (!data) return false;
-  if (data.provider === "Epic Games")
-    return /^com\.epicgames\.launcher:\/\/apps\/[a-z0-9%:_-]+\?action=launch(?:&silent=true)?$/i.test(
-      uri,
-    );
+  if (data.provider === "Epic Games") {
+    const match =
+      /^com\.epicgames\.launcher:\/\/apps\/([a-z0-9%:_-]+)\?action=launch(?:&silent=true)?$/i.exec(
+        uri,
+      );
+    if (!match) return false;
+    try {
+      return /^[a-z0-9:_-]+$/i.test(decodeURIComponent(match[1]));
+    } catch {
+      return false;
+    }
+  }
   if (data.provider === "EA app")
     return /^(?:origin|origin2):\/\/launchgame\/[a-z0-9:_-]+(?:\?.*)?$/i.test(
       uri,

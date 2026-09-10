@@ -1,9 +1,25 @@
 const path = require("node:path");
 const { game } = require("./detected-game.cjs");
-const { normalize, classifyUri } = require("./model.cjs");
+const { normalize, classifyUri, validLaunchUri } = require("./model.cjs");
+function insideInstallation(target, directory) {
+  if (
+    typeof target !== "string" ||
+    typeof directory !== "string" ||
+    !path.isAbsolute(target) ||
+    !path.isAbsolute(directory)
+  )
+    return false;
+  const relative = path.relative(directory, target);
+  return (
+    relative !== ".." &&
+    !relative.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relative)
+  );
+}
 async function scanShortcuts({ inventory, steam, epic, riot, io }) {
   const { exists } = io;
-  const games = [];
+  const games = [],
+    warnings = [];
   const steamGames = steam.byAppId,
     missingSteamLibraries = steam.missingLibraries,
     epicGames = epic.byAppName,
@@ -25,13 +41,19 @@ async function scanShortcuts({ inventory, steam, epic, riot, io }) {
     if (shortcut.target && !/\.exe$/i.test(shortcut.target)) continue;
     if (/^https?:/i.test(shortcut.parsing || shortcut.url)) continue;
     const uri = shortcut.url;
+    if (uri && !validLaunchUri(uri)) {
+      warnings.push(
+        "Se omitió un acceso con un enlace de lanzador no válido o no admitido.",
+      );
+      continue;
+    }
     const identity = classifyUri(uri);
     let g;
     if (identity) {
       const steam = identity.steamId && steamGames.get(identity.steamId);
       const appName =
         identity.provider === "Epic Games"
-          ? decodeURIComponent(uri.split("/apps/")[1]?.split("?")[0] || "")
+          ? decodeURIComponent(/\/apps\/([^?]+)/i.exec(uri)[1])
               .split(":")
               .at(-1)
               .toLowerCase()
@@ -98,10 +120,7 @@ async function scanShortcuts({ inventory, steam, epic, riot, io }) {
       const target = shortcut.target;
       const reg = inventory.uninstall.find(
         (r) =>
-          (r.InstallLocation &&
-            target
-              ?.toLowerCase()
-              .startsWith(r.InstallLocation.toLowerCase())) ||
+          insideInstallation(target, r.InstallLocation) ||
           normalize(r.DisplayName) === normalize(shortcut.name),
       );
       const provider = reg?.Publisher?.match(/Electronic Arts/i)
@@ -167,6 +186,6 @@ async function scanShortcuts({ inventory, steam, epic, riot, io }) {
     }
     games.push(g);
   }
-  return { games };
+  return { games, warnings: [...new Set(warnings)] };
 }
 module.exports = { scanShortcuts };
