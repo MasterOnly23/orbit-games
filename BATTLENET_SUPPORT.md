@@ -8,6 +8,10 @@ La ruta de inicio de una entrada del registro es el ejecutable identificado. Si 
 
 ## Pendientes
 
+En el código posterior a alfa 5 existe un lector de catálogo en `electron/accounts/battlenet-catalog.cjs`, todavía sin registrar como conector. Consulta `games-and-subs` y `classic-games` desde una sesión que deberá proporcionar el flujo de autenticación. Devuelve solo identificador de título, nombre y una indicación de acceso no verificado; no conserva nombres de cuentas de juego, regiones, estados privados ni claves. No interpreta la existencia de una cuenta de juego como compra o suscripción vigente.
+
+El lector exige ambas respuestas completas. Si aparecen juegos clásicos, rechaza la importación hasta contar con una correspondencia fiable de sus ediciones; no devuelve una biblioteca parcial como completa. Esto limita su utilidad actual y debe resolverse antes de considerar cubierta la integración. Tres pruebas con respuestas controladas verifican esa condición, errores, tamaño máximo y cancelación. No hay botón de conexión habilitado ni validación con cuenta real.
+
 - Leer `product.db` con un formato acotado y cobertura de identidades verificada. Algunos juegos pueden no registrar una entrada de desinstalación.
 - Relacionar instalaciones con IDs del catálogo remoto, conservando versiones, pruebas y regiones.
 - Conexión de cuenta, renovación y biblioteca de juegos sin instalar.

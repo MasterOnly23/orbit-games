@@ -109,6 +109,8 @@ Las etapas pueden solaparse. La terminación se evalúa contra el objetivo compl
 
 ## Registro de avance
 
+- Lector de catálogo Battle.net (código posterior a alfa 5): contratos de `games-and-subs` y `classic-games`, límite de respuesta, cancelación y exclusión de campos privados. Los registros de juegos se presentan con acceso desconocido. Rechaza clásicos sin correspondencia de edición fiable antes de devolver un catálogo completo. Sigue sin conectarse al registro de proveedores: autenticación, clásicos, identidad estable, unión con instalaciones y QA de cuenta permanecen pendientes. Referencias y límites en [BATTLENET_SUPPORT.md](BATTLENET_SUPPORT.md).
+
 - Entrega alfa 5 (12 de septiembre de 2026): ejecutable e instalador NSIS independientes en `release-next/alpha5`, sin instalar. Reúne detección itch/Blizzard, reorganización interna, cobertura de plataformas, idioma/región de fichas y recuperación del asistente posteriores a alfa 4. Recorridos de escritorio, respaldo, cierre y actualización de fichas aprobados desde el paquete en perfiles aislados. Hash de Orbit estable conservado. Evidencia y pendientes en [RELEASE_ALPHA5.md](RELEASE_ALPHA5.md); no es un candidato público ni acredita Windows 10 o cuentas reales.
 
 - Battle.net local (código posterior a alfa 4): detector separado de registros Blizzard con ejecutable dentro de la instalación; excluye componentes del cliente y conserva estados sin verificar cuando no puede acceder al archivo. Asocia accesos simples al mismo ejecutable. El lanzador Battle.net compartido deja de acreditar una instalación por sí solo. Cobertura, fuente y pendientes en [BATTLENET_SUPPORT.md](BATTLENET_SUPPORT.md); product.db, cuenta remota y lanzamiento real permanecen pendientes.
