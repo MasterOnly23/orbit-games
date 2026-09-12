@@ -61,7 +61,7 @@ const platforms = [
     id: "battlenet",
     name: "Battle.net",
     local:
-      "Accesos compatibles. Encontrar el lanzador no acredita toda la biblioteca instalada.",
+      "Registro de Blizzard con ejecutable dentro de la carpeta del juego y accesos compatibles. No lee product.db; encontrar solo el lanzador no confirma una instalación.",
     account: "La consulta de biblioteca de cuenta no está implementada.",
   },
   {

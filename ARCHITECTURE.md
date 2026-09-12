@@ -17,6 +17,7 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 | `electron/library/scanner.cjs` | Componer inventario local y fuentes de plataformas. Sus detectores específicos deben continuar separándose por proveedor. |
 | `electron/library/steam-local.cjs` y `epic-local.cjs` | Leer manifiestos de cada plataforma, interpretar estados y devolver juegos, avisos, rutas observadas e índices para asociar accesos directos. Reciben operaciones de lectura cancelables desde el coordinador. |
 | `electron/library/detected-game.cjs` | Construir el registro base compartido de una detección, sin persistencia ni preferencias del usuario. |
+| `electron/library/battlenet-local.cjs` | Reconocer instalaciones Blizzard del inventario de registro con ejecutable propio y comprobar su disponibilidad; no consulta cuentas. |
 | `electron/library/windows-shortcuts.cjs` | Interpretar accesos y asociarlos con manifiestos ya detectados; distinguir lanzadores compartidos y estados no verificables. |
 | `electron/library/windows-registry.cjs` | Detectar entradas adicionales EA, GOG y Ubisoft, excluyendo lanzadores e instaladores y evitando repetir juegos conocidos. |
 | `electron/library/xbox-local.cjs` | Reconocer paquetes de juego con MicrosoftGame.config y asociar identidades de Windows sin importar todas las aplicaciones Store. |

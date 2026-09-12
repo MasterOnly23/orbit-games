@@ -11,6 +11,7 @@ const { promisify } = require("node:util");
 const run = promisify(execFile);
 const { scanRiot } = require("./riot.cjs");
 const { scanItch } = require("./itch-local.cjs");
+const { scanBattleNet } = require("./battlenet-local.cjs");
 const { abortable } = require("./abortable.cjs");
 const { classifyUri, validLaunchUri } = require("./model.cjs");
 async function exists(file) {
@@ -94,6 +95,9 @@ async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
   warnings.push(...itch.warnings);
   watchPaths.push(...itch.watchPaths);
   const io = { read, exists, entries };
+  const battlenet = await scanBattleNet({ inventory, signal });
+  games.push(...battlenet.games);
+  watchPaths.push(...battlenet.watchPaths);
   const steam = await scanSteam({ steamPath: inventory.steamPath, io });
   const epic = await scanEpic({ io });
   for (const result of [steam, epic]) {
@@ -101,7 +105,14 @@ async function scanLibrary(folders, script, { signal, gameFolders = [] } = {}) {
     warnings.push(...result.warnings);
     watchPaths.push(...result.watchPaths);
   }
-  const shortcuts = await scanShortcuts({ inventory, steam, epic, riot, io });
+  const shortcuts = await scanShortcuts({
+    inventory,
+    steam,
+    epic,
+    riot,
+    battlenet,
+    io,
+  });
   games.push(...shortcuts.games);
   warnings.push(...shortcuts.warnings);
   const registry = await scanRegistry({ inventory, knownGames: games, io });

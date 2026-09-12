@@ -16,7 +16,14 @@ function insideInstallation(target, directory) {
     !path.isAbsolute(relative)
   );
 }
-async function scanShortcuts({ inventory, steam, epic, riot, io }) {
+async function scanShortcuts({
+  inventory,
+  steam,
+  epic,
+  riot,
+  battlenet = { games: [] },
+  io,
+}) {
   const { exists } = io;
   const games = [],
     warnings = [];
@@ -39,6 +46,20 @@ async function scanShortcuts({ inventory, steam, epic, riot, io }) {
         shortcut.parsing = start.AppID;
     }
     if (shortcut.target && !/\.exe$/i.test(shortcut.target)) continue;
+    const detectedBattleNet =
+      shortcut.target &&
+      !shortcut.arguments &&
+      battlenet.games.find(
+        (item) =>
+          item.targetExecutable.toLowerCase() === shortcut.target.toLowerCase(),
+      );
+    if (detectedBattleNet) {
+      detectedBattleNet.sources.push(shortcut.path);
+      // Preserve native shortcut options (working directory, elevation, etc.).
+      if (detectedBattleNet.launch.target === detectedBattleNet.targetExecutable)
+        detectedBattleNet.launch = { kind: "file", target: shortcut.path };
+      continue;
+    }
     if (/^https?:/i.test(shortcut.parsing || shortcut.url)) continue;
     const uri = shortcut.url;
     if (uri && !validLaunchUri(uri)) {
@@ -135,9 +156,10 @@ async function scanShortcuts({ inventory, steam, epic, riot, io }) {
                 ? "EA app"
                 : "Otros";
       const present = await exists(target);
-      const sharedLauncher = /RiotClient|LauncherPatcher|maintenancetool/i.test(
-        target,
-      );
+      const sharedLauncher =
+        /RiotClient|LauncherPatcher|maintenancetool|Battle\.net(?: Launcher)?\.exe/i.test(
+          target,
+        );
       g = game(shortcut.name, provider, shortcut.path, {
         status: present
           ? sharedLauncher
