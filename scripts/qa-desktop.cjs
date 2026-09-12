@@ -154,7 +154,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       ),
       false,
     );
-    if (fromSource) {
+    {
       await page
         .getByRole("combobox", { name: "Idioma de las fichas", exact: true })
         .click();
@@ -187,7 +187,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       path: path.join(output, "next-setup-accounts.png"),
       animations: "disabled",
     });
-    if (fromSource) {
+    {
       const beforeFailure = await page.evaluate(() =>
         window.orbit.getLibrary(),
       );
@@ -247,7 +247,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       saved.games.some((g) => g.name === "Orbit QA Adventure" && g.manual),
     );
     assert.equal(saved.settings.onlineMetadata, false);
-    if (fromSource) {
+    {
       assert.equal(saved.settings.metadataLanguage, "english");
       assert.equal(saved.settings.metadataCountry, "US");
     }
@@ -560,7 +560,7 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       .getByRole("combobox", { name: "Filtrar por progreso" })
       .selectOption("all");
     await page.getByRole("button", { name: "Ajustes", exact: true }).click();
-    if (fromSource) {
+    {
       await page.getByText("Cobertura por plataforma", { exact: true }).click();
       await page
         .getByRole("heading", {

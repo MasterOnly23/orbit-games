@@ -39,8 +39,8 @@ const { LibraryStore } = require("../electron/library/store.cjs");
     await store.save();
     const launch = () =>
       electron.launch({
-        executablePath: require("electron"),
-        args: [path.resolve(".")],
+        executablePath: process.env.ORBIT_TEST_EXE || require("electron"),
+        args: process.env.ORBIT_TEST_EXE ? [] : [path.resolve(".")],
         env,
       });
     app = await launch();

@@ -4,9 +4,9 @@ Mapa de responsabilidades y reglas para ampliar el proyecto: [ARCHITECTURE.md](A
 
 Biblioteca de juegos para Windows en desarrollo. La rama `feature/orbit-next-onboarding` mantiene una aplicación independiente de Orbit Games 1.0.0. El objetivo público exige Windows 10 y 11 x64; esa compatibilidad aún no está acreditada en ambos sistemas.
 
-## Alfa 4
+## Alfa 5
 
-La versión `0.2.0-alpha.4` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 4](RELEASE_ALPHA4.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
+La versión `0.2.0-alpha.5` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 5](RELEASE_ALPHA5.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
 
 ## Convivencia con Orbit actual
 
@@ -16,7 +16,7 @@ La versión `0.2.0-alpha.4` reúne el asistente inicial, detección de juegos, c
 | Aplicación | Orbit Games | Orbit Games Next |
 | Identificador | `com.pipe.orbitgames` | `com.pipe.orbitgames.next` |
 | Perfil | `%APPDATA%\Orbit Games` | `%APPDATA%\Orbit Games Next` |
-| Salida actual | `release/` | `release-next/alpha4/` |
+| Salida actual | `release/` | `release-next/alpha5/` |
 | Inicio con Windows | Entrada de Orbit | Entrada `OrbitGamesNext` |
 
 Next no importa ni modifica automáticamente el perfil de Orbit actual. Ambas aplicaciones pueden ejecutarse a la vez. Las distintas alfas de Next comparten su perfil de Next; cierra una alfa de Next antes de abrir otra, porque la protección de instancia única puede enfocar la que ya está abierta. No hace falta cerrar Orbit Games 1.0.0.
@@ -28,14 +28,14 @@ Las pruebas usan perfiles nuevos dentro de `%APPDATA%\Orbit Games Next\qa`. Se r
 Ejecuta `ABRIR_ORBIT_NEXT.cmd` en este checkout, o abre:
 
 ```powershell
-& '.\release-next\alpha4\win-unpacked\Orbit Games Next.exe'
+& '.\release-next\alpha5\win-unpacked\Orbit Games Next.exe'
 ```
 
-Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No requiere Node.js para ejecutarse. El instalador NSIS se genera en `release-next/alpha4/`; generarlo no lo instala. La alfa no tiene firma comercial ni actualización automática.
+Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No requiere Node.js para ejecutarse. El instalador NSIS se genera en `release-next/alpha5/`; generarlo no lo instala. La alfa no tiene firma comercial ni actualización automática.
 
 ## Funciones disponibles
 
-En el código posterior a alfa 4, **Ajustes → Idioma y región de las fichas** permite elegir entre 12 idiomas y una región de consulta opcional. **Editar juego → Actualizar ficha** vuelve a consultar Steam con esas preferencias y conserva la vinculación elegida. La disponibilidad de traducciones depende de cada juego; el idioma de la interfaz continúa siendo español. Estos cambios todavía no están incluidos en el instalador alfa 4.
+En alfa 5, **Ajustes → Idioma y región de las fichas** permite elegir entre 12 idiomas y una región de consulta opcional. **Editar juego → Actualizar ficha** vuelve a consultar Steam con esas preferencias y conserva la vinculación elegida. La disponibilidad de traducciones depende de cada juego; el idioma de la interfaz continúa siendo español. Estos cambios están incluidos en el paquete alfa 5.
 
 El asistente inicial también permite elegir idioma y región al revisar los juegos. Se guardan al finalizar y no activan por sí solos las consultas en línea.
 
@@ -72,7 +72,7 @@ npm run dev
 npm test
 npm run package
 npm run test:desktop
-$env:ORBIT_TEST_EXE = (Resolve-Path '.\release-next\alpha4\win-unpacked\Orbit Games Next.exe').Path
+$env:ORBIT_TEST_EXE = (Resolve-Path '.\release-next\alpha5\win-unpacked\Orbit Games Next.exe').Path
 node scripts/qa-backup.cjs
 Remove-Item Env:ORBIT_TEST_EXE
 ```
