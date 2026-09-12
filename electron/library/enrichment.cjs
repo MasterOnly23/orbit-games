@@ -17,7 +17,9 @@ function createEnrichmentService({ store, save, isQuitting }) {
         )
           continue;
         try {
-          const meta = await matchMetadata(candidate);
+          const meta = await matchMetadata(candidate, {
+            ...store.data.settings,
+          });
           const current = store.getGame(candidate.id);
           if (!current.metadata) current.metadata = meta;
           current.metadataCheckedAt = new Date().toISOString();

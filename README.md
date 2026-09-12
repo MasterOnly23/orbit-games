@@ -35,6 +35,8 @@ Conserva toda la carpeta `win-unpacked`; el `.exe` depende de sus recursos. No r
 
 ## Funciones disponibles
 
+En el código posterior a alfa 4, **Ajustes → Idioma y región de las fichas** permite elegir entre 12 idiomas y una región de consulta opcional. **Editar juego → Actualizar ficha** vuelve a consultar Steam con esas preferencias y conserva la vinculación elegida. La disponibilidad de traducciones depende de cada juego; el idioma de la interfaz continúa siendo español. Estos cambios todavía no están incluidos en el instalador alfa 4.
+
 Alfa 4 añade etiquetas personales y filtro combinable, cancelación del escaneo general y cierre coordinado que espera los guardados pendientes. Si falla la escritura al salir, Orbit permanece abierto para permitir corregir el problema y guardar de nuevo.
 
 Alfa 4 incorpora **Ajustes → Exportar diagnóstico**. Guarda un JSON local con versiones, recuentos, estado de conexiones y códigos de error. No incluye nombres, rutas, notas, imágenes ni credenciales, y no lo envía automáticamente. No es un respaldo de la biblioteca.

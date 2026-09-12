@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { FolderPlus, X, Download, Upload } from "lucide-react";
 import AccountsPanel from "../accounts/AccountsPanel";
+import MetadataPreferences from "./MetadataPreferences";
 export default function SettingsDialog({
   open,
   onClose,
@@ -82,6 +83,7 @@ export default function SettingsDialog({
             />
           </label>
         ))}
+        <MetadataPreferences settings={settings} action={action} />
         <Divider />
         <div className="form-section-heading">
           <h3>Carpetas de accesos directos</h3>

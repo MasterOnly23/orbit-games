@@ -109,6 +109,8 @@ Las etapas pueden solaparse. La terminación se evalúa contra el objetivo compl
 
 ## Registro de avance
 
+- Idioma y región de fichas (código posterior a alfa 4): 12 idiomas, país opcional sin región AR fija, validación antes de modificar preferencias y caché separada por idioma/región. La actualización explícita consulta de nuevo el proveedor y conserva el ID vinculado, aunque el juego tenga otro nombre. Las fichas existentes se conservan hasta actualizarlas. Se corrigió el editor para aceptar fichas sin géneros o desarrolladores. QA con proveedor controlado comprueba persistencia tras reiniciar, rechazo de preferencias inválidas sin activar red y actualización desde el editor. No acredita traducciones reales de cada juego ni una interfaz multilingüe; Windows 10 sigue pendiente de validación.
+
 - `e9883d5`: aislamiento de Next, onboarding de carpetas, búsqueda acotada y confirmación de ejecutables. 14 pruebas y recorrido de escritorio en un equipo. No es un candidato público completo.
 - Siguiente incremento: unión de catálogo remoto con instalaciones y preferencias, recuperación desde respaldo aun si falta el archivo principal y conector Steam experimental en Ajustes. 21 pruebas automatizadas pasan; la autenticación real, persistencia de sesión, revocación y compatibilidad Windows 10 siguen pendientes. No se cuenta todavía como soporte de Steam validado.
 - El conector Steam usa como referencia Playnite Extensions MIT, commit `3085ebd8b5906b53d3f005ef08141d641f4c469d`; el aviso se incluye en `THIRD_PARTY_NOTICES.md` y en el paquete.

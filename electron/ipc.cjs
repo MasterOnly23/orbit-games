@@ -13,6 +13,7 @@ const { idFor } = require("./library/model.cjs");
 const { createHash } = require("node:crypto");
 const playStatuses = require("./library/play-status.json");
 const { validateTags } = require("./library/tags.cjs");
+const { metadataOptions } = require("./library/metadata-options.cjs");
 const { createDiagnostics } = require("./library/diagnostics.cjs");
 const os = require("node:os");
 function playStatus(value = "none") {
@@ -220,6 +221,7 @@ function registerIpc({
     if (!patch || typeof patch !== "object")
       throw new Error("Ajustes no válidos.");
     const settings = store.data.settings;
+    const locale = metadataOptions({ ...settings, ...patch });
     for (const key of [
       "autoScan",
       "onlineMetadata",
@@ -242,6 +244,7 @@ function registerIpc({
         openAtLogin: patch.startWithWindows,
       });
     }
+    Object.assign(settings, locale);
     await save();
     if (!settings.autoScan) setWatchers([]);
     else if (patch.autoScan === true || patch.folders) scan().catch(report);
@@ -253,12 +256,12 @@ function registerIpc({
       throw new Error("Activa las fichas en línea en Ajustes.");
     if (typeof query !== "string" || query.length < 2 || query.length > 200)
       throw new Error("Escribe el nombre del juego.");
-    return searchMetadata(query);
+    return searchMetadata(query, { ...store.data.settings });
   });
   handle("metadata:apply", async (id, steamId) => {
     if (!store.data.settings.onlineMetadata)
       throw new Error("Activa las fichas en línea.");
-    const meta = await getMetadata(String(steamId));
+    const meta = await getMetadata(String(steamId), { ...store.data.settings });
     store.getGame(id).metadata = meta;
     await save();
     return snapshot();
@@ -267,7 +270,7 @@ function registerIpc({
     if (!store.data.settings.onlineMetadata)
       throw new Error("Activa las fichas en línea.");
     const g = store.getGame(id),
-      meta = await matchMetadata(g);
+      meta = await matchMetadata(g, { ...store.data.settings }, { force: true });
     if (!meta)
       throw new Error(
         "No hay una coincidencia exacta. Busca la ficha y selecciónala.",

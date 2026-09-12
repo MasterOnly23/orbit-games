@@ -42,6 +42,8 @@ class LibraryStore {
         gameFolders: [],
         autoScan: true,
         onlineMetadata: false,
+        metadataLanguage: "spanish",
+        metadataCountry: "",
         closeToTray: false,
         minimizeOnLaunch: false,
       },

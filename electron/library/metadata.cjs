@@ -1,4 +1,5 @@
 const { normalize } = require("./model.cjs");
+const { metadataOptions } = require("./metadata-options.cjs");
 const cache = new Map();
 async function json(url) {
   const response = await fetch(url, {
@@ -9,21 +10,27 @@ async function json(url) {
     throw new Error("La tienda no está disponible. Inténtalo más tarde.");
   return response.json();
 }
-async function searchMetadata(name) {
+function localeQuery(settings) {
+  const { metadataLanguage, metadataCountry } = metadataOptions(settings);
+  return `l=${metadataLanguage}${metadataCountry ? `&cc=${metadataCountry}` : ""}`;
+}
+async function searchMetadata(name, settings) {
   const data = await json(
-    `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(name)}&l=spanish&cc=AR`,
+    `https://store.steampowered.com/api/storesearch/?term=${encodeURIComponent(name)}&${localeQuery(settings)}`,
   );
   return (data.items || [])
     .filter((i) => Number.isInteger(i.id))
     .slice(0, 8)
     .map((i) => ({ id: String(i.id), name: i.name, image: i.tiny_image }));
 }
-async function getMetadata(id) {
+async function getMetadata(id, settings, { force = false } = {}) {
   if (!/^\d+$/.test(String(id)))
     throw new Error("El ID de Steam no es válido.");
-  if (cache.has(id)) return cache.get(id);
+  const locale = localeQuery(settings),
+    cacheKey = `${id}:${locale}`;
+  if (!force && cache.has(cacheKey)) return cache.get(cacheKey);
   const payload = await json(
-    `https://store.steampowered.com/api/appdetails?appids=${id}&l=spanish`,
+    `https://store.steampowered.com/api/appdetails?appids=${id}&${locale}`,
   );
   const d = payload[id]?.data;
   if (!d) throw new Error("Steam no tiene una ficha pública para este juego.");
@@ -50,15 +57,19 @@ async function getMetadata(id) {
     sourceUrl: `https://store.steampowered.com/app/${id}/`,
     fetchedAt: new Date().toISOString(),
   };
-  cache.set(id, result);
+  cache.set(cacheKey, result);
   return result;
 }
-async function matchMetadata(game) {
-  if (game.steamId) return getMetadata(game.steamId);
-  const candidates = await searchMetadata(game.customName || game.name);
+async function matchMetadata(game, settings, options) {
+  const selectedId = game.metadata?.steamId || game.steamId;
+  if (selectedId) return getMetadata(selectedId, settings, options);
+  const candidates = await searchMetadata(
+    game.customName || game.name,
+    settings,
+  );
   const match = candidates.find(
     (c) => normalize(c.name) === normalize(game.customName || game.name),
   );
-  return match ? getMetadata(match.id) : null;
+  return match ? getMetadata(match.id, settings, options) : null;
 }
 module.exports = { searchMetadata, getMetadata, matchMetadata };

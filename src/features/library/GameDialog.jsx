@@ -31,7 +31,8 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
   const [busy, setBusy] = useState(false),
     [query, setQuery] = useState(""),
     [results, setResults] = useState(null),
-    [searchBusy, setSearchBusy] = useState(false);
+    [searchBusy, setSearchBusy] = useState(false),
+    [refreshBusy, setRefreshBusy] = useState(false);
   useEffect(() => {
     if (open) {
       reset({
@@ -256,6 +257,19 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
                   ni la propiedad del juego.
                 </p>
               </div>
+              <Button
+                disabled={busy || refreshBusy}
+                onClick={async () => {
+                  setRefreshBusy(true);
+                  await action(
+                    () => window.orbit.metadataRefresh(game.id),
+                    "Ficha actualizada",
+                  );
+                  setRefreshBusy(false);
+                }}
+              >
+                Actualizar ficha
+              </Button>
               <div className="path-field">
                 <TextField
                   label="Buscar ficha"
@@ -308,8 +322,8 @@ export default function GameDialog({ open, onClose, game, action, onAdded }) {
               </div>
               {game.metadata && (
                 <div className="metadata-info">
-                  <span>{game.metadata.developers.join(", ")}</span>
-                  <span>{game.metadata.genres.join(" · ")}</span>
+                  <span>{(game.metadata.developers || []).join(", ")}</span>
+                  <span>{(game.metadata.genres || []).join(" · ")}</span>
                   {game.metadata.score && (
                     <span>Metacritic: {game.metadata.score}/100</span>
                   )}
