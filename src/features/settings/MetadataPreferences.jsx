@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Button, MenuItem, Stack, TextField, Typography } from "@mui/material";
-import languages from "../../../electron/library/metadata-languages.json";
+import { Button, Stack, Typography } from "@mui/material";
+import MetadataLocaleFields from "./MetadataLocaleFields";
 
 export default function MetadataPreferences({ settings, action }) {
   const [language, setLanguage] = useState(
@@ -36,27 +36,12 @@ export default function MetadataPreferences({ settings, action }) {
       <Typography component="h3" variant="subtitle1">
         Idioma y región de las fichas
       </Typography>
-      <TextField
-        select
-        label="Idioma de las fichas"
-        value={language}
-        onChange={(event) => setLanguage(event.target.value)}
+      <MetadataLocaleFields
+        language={language}
+        country={country}
+        onLanguage={setLanguage}
+        onCountry={setCountry}
         disabled={busy}
-      >
-        {Object.entries(languages).map(([id, label]) => (
-          <MenuItem key={id} value={id}>
-            {label}
-          </MenuItem>
-        ))}
-      </TextField>
-      <TextField
-        label="Región de consulta"
-        value={country}
-        onChange={(event) => setCountry(event.target.value.toUpperCase())}
-        disabled={busy}
-        error={!valid}
-        slotProps={{ htmlInput: { maxLength: 2 } }}
-        helperText="Código de país de dos letras: AR, MX, CO, ES, BR, US… Vacío: la tienda determina la región."
       />
       <Typography variant="body2" color="text.secondary">
         Afecta búsquedas y actualizaciones nuevas cuando activas las fichas en

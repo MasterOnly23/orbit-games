@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const { abortable } = require("../library/abortable.cjs");
 const { scanLibrary, inspectManual } = require("../library/scanner.cjs");
 const { mergeGames } = require("../library/model.cjs");
+const { metadataOptions } = require("../library/metadata-options.cjs");
 const {
   validateFolders,
   findExecutableCandidates,
@@ -102,6 +103,12 @@ function registerOnboarding({
       throw new Error("La selección de ejecutables no es válida.");
     if (typeof options.onlineMetadata !== "boolean")
       throw new Error("Indica si quieres consultar las fichas en línea.");
+    const locale = metadataOptions({
+      metadataLanguage:
+        options.metadataLanguage ?? store.data.settings.metadataLanguage,
+      metadataCountry:
+        options.metadataCountry ?? store.data.settings.metadataCountry,
+    });
     busy = true;
     try {
       const manual = [];
@@ -124,6 +131,7 @@ function registerOnboarding({
         folders: preview.folders,
         gameFolders: preview.gameFolders,
         onlineMetadata: options.onlineMetadata,
+        ...locale,
       };
       store.data.onboarding = { completedAt: new Date().toISOString() };
       store.data.scannedAt = preview.scan.scannedAt;

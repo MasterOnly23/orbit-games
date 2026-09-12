@@ -1,15 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Button,
-  Checkbox,
-  CircularProgress,
-  FormControlLabel,
-  Switch,
-} from "@mui/material";
+import { Alert, Button, Checkbox, CircularProgress } from "@mui/material";
 import { FolderPlus, ArrowRight, CheckCircle2, X, Search } from "lucide-react";
 import "./setup.css";
 import AccountsPanel from "../accounts/AccountsPanel";
+import SetupMetadata from "./SetupMetadata";
 
 export default function SetupWizard({
   settings,
@@ -25,6 +19,11 @@ export default function SetupWizard({
   const [preview, setPreview] = useState(null);
   const [selected, setSelected] = useState([]);
   const [online, setOnline] = useState(!!settings.onlineMetadata);
+  const [language, setLanguage] = useState(
+    settings.metadataLanguage || "spanish",
+  );
+  const [country, setCountry] = useState(settings.metadataCountry || "");
+  const validLocale = /^(?:[A-Z]{2})?$/.test(country);
   const [busy, setBusy] = useState(false);
   const [searching, setSearching] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -292,22 +291,15 @@ export default function SetupWizard({
                 </div>
               )}
             </section>
-            <section className="setup-panel">
-              <FormControlLabel
-                control={
-                  <Switch
-                    disabled={busy}
-                    checked={online}
-                    onChange={(e) => setOnline(e.target.checked)}
-                  />
-                }
-                label="Consultar portadas y fichas en línea"
-              />
-              <p className="setup-note">
-                Envía nombres e identificadores de juegos a Steam para buscar
-                coincidencias. Puedes cambiar esta opción en Ajustes.
-              </p>
-            </section>
+            <SetupMetadata
+              online={online}
+              onOnline={setOnline}
+              language={language}
+              onLanguage={setLanguage}
+              country={country}
+              onCountry={setCountry}
+              busy={busy}
+            />
           </>
         )}
         <footer className="setup-actions">
@@ -368,7 +360,7 @@ export default function SetupWizard({
             )}
             <Button
               variant="contained"
-              disabled={busy || connecting}
+              disabled={busy || connecting || !validLocale}
               endIcon={
                 preview ? <ArrowRight size={18} /> : <Search size={18} />
               }
@@ -400,6 +392,8 @@ export default function SetupWizard({
                       previewId: preview.id,
                       selectedCandidates: selected,
                       onlineMetadata: online,
+                      metadataLanguage: language,
+                      metadataCountry: country,
                     });
                     onComplete();
                   }

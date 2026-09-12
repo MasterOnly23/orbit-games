@@ -29,6 +29,8 @@ Los módulos extraídos reciben sus dependencias y estado explícitamente. Ningu
 
 ## Interfaz
 
+`MetadataLocaleFields` comparte los controles de idioma/región entre Ajustes y el asistente; sus valores pertenecen a cada flujo. `SetupMetadata` contiene la presentación y el permiso de consulta del onboarding, sin realizar guardados por su cuenta. La validación de valores admitidos reside en `electron/library/metadata-options.cjs` y se usa en ambos comandos IPC.
+
 `src/features/library`, `accounts`, `onboarding` y `settings` contienen sus pantallas y flujos. `App.jsx` ensambla la navegación y la biblioteca. Al ampliar organización o búsqueda, extraer filtros/selectores y controles de biblioteca dentro de `features/library`, conservando una única fuente de estado.
 
 ## Criterio para próximas ampliaciones

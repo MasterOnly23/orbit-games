@@ -109,6 +109,8 @@ Las etapas pueden solaparse. La terminación se evalúa contra el objetivo compl
 
 ## Registro de avance
 
+- Preferencias en onboarding (código posterior a alfa 4): el paso de revisión permite elegir idioma y región de fichas junto con el permiso de consultas. Reutiliza los controles de Ajustes y conserva las elecciones al pasar a cuentas; solo se guardan al completar el asistente. Las preferencias inválidas se rechazan antes de modificar catálogo, ajustes o estado del asistente. No se activan consultas por elegir un idioma. Pendientes generales de ONB: reanudación tras cerrar antes de completar, ayuda y validación del primer arranque desde instalación en ambos Windows.
+
 - Idioma y región de fichas (código posterior a alfa 4): 12 idiomas, país opcional sin región AR fija, validación antes de modificar preferencias y caché separada por idioma/región. La actualización explícita consulta de nuevo el proveedor y conserva el ID vinculado, aunque el juego tenga otro nombre. Las fichas existentes se conservan hasta actualizarlas. Se corrigió el editor para aceptar fichas sin géneros o desarrolladores. QA con proveedor controlado comprueba persistencia tras reiniciar, rechazo de preferencias inválidas sin activar red y actualización desde el editor. No acredita traducciones reales de cada juego ni una interfaz multilingüe; Windows 10 sigue pendiente de validación.
 
 - `e9883d5`: aislamiento de Next, onboarding de carpetas, búsqueda acotada y confirmación de ejecutables. 14 pruebas y recorrido de escritorio en un equipo. No es un candidato público completo.

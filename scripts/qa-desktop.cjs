@@ -154,6 +154,22 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       ),
       false,
     );
+    if (fromSource) {
+      await page
+        .getByRole("combobox", { name: "Idioma de las fichas", exact: true })
+        .click();
+      await page.getByRole("option", { name: "English", exact: true }).click();
+      await page.getByLabel("Región de consulta", { exact: true }).fill("us");
+      const pending = await page.evaluate(() => window.orbit.getLibrary());
+      assert.equal(pending.settings.metadataLanguage, "spanish");
+      assert.equal(pending.settings.onlineMetadata, false);
+      await page
+        .getByLabel("Región de consulta", { exact: true })
+        .scrollIntoViewIfNeeded();
+      await page.screenshot({
+        path: path.join(output, "next-setup-metadata.png"),
+      });
+    }
     await page
       .getByRole("button", { name: "Continuar a cuentas", exact: true })
       .click();
@@ -181,6 +197,10 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       saved.games.some((g) => g.name === "Orbit QA Adventure" && g.manual),
     );
     assert.equal(saved.settings.onlineMetadata, false);
+    if (fromSource) {
+      assert.equal(saved.settings.metadataLanguage, "english");
+      assert.equal(saved.settings.metadataCountry, "US");
+    }
     await page
       .getByRole("textbox", { name: "Buscar un juego", exact: true })
       .fill("Orbit QA Adventure");
