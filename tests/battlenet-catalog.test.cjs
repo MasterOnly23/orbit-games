@@ -14,6 +14,38 @@ const entry = {
 };
 const json = (value) => new Response(JSON.stringify(value));
 
+test("Battle.net session exposes only authentication and a generic name", async () => {
+  const { battlenet } = require("../electron/accounts/battlenet.cjs");
+  const credentials = await battlenet.readSession({
+    fetchImpl: async () =>
+      json({
+        authenticated: true,
+        loginUri: "PRIVATE",
+        accountCompletion: { accountCountry: "PRIVATE" },
+      }),
+  });
+  assert.deepEqual(credentials, {
+    authenticated: true,
+    displayName: "Sesión Battle.net",
+  });
+  assert.equal(battlenet.validSession(credentials), true);
+  assert.equal(
+    await battlenet.readSession({
+      fetchImpl: async () => new Response("", { status: 401 }),
+    }),
+    null,
+  );
+  assert.equal(
+    await battlenet.readSession({
+      fetchImpl: async () => json({ authenticated: false }),
+    }),
+    null,
+  );
+  await assert.rejects(battlenet.fetchLibrary({}, {}), {
+    code: "auth-required",
+  });
+});
+
 test("Battle.net game account records do not become purchases and drop private fields", () => {
   const games = parseGameAccounts({
     gameAccounts: [entry, { ...entry, gameAccountRegion: "EU" }],

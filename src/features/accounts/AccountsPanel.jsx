@@ -155,6 +155,11 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
         identifica por su sesión local.
       </Typography>
       <Typography variant="caption" color="text.secondary">
+        Battle.net conecta una sesión local sin verificar la identidad de la
+        cuenta. Sus registros no prueban compra ni suscripción vigente. La
+        importación de cuentas con juegos clásicos sigue pendiente.
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
         Desconectar elimina la sesión de Orbit de este equipo y conserva los
         juegos importados. Puedes usar la biblioteca local sin conectar cuentas.
       </Typography>

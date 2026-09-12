@@ -3,7 +3,7 @@
 Steam, GOG, Epic and Humble connector authentication and library lookup are adapted from the Playnite Extensions integrations (commit 3085ebd8b5906b53d3f005ef08141d641f4c469d).
 Source: https://github.com/JosefNemec/PlayniteExtensions
 
-Battle.net catalog endpoint and response-field references also come from the BattleNetLibrary integration at the same commit. Orbit's catalog reader is not yet a registered account connector.
+Battle.net catalog endpoint and response-field references also come from the BattleNetLibrary integration at the same commit. Orbit's Battle.net account connector uses an isolated browser session and remains experimental.
 
 MIT License
 

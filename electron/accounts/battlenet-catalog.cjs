@@ -119,4 +119,23 @@ async function fetchBattleNetCatalog({ fetchImpl, signal }) {
   signal?.throwIfAborted();
   return { complete: true, games };
 }
-module.exports = { parseGameAccounts, fetchBattleNetCatalog };
+async function readBattleNetSession({ fetchImpl, signal }) {
+  try {
+    const data = await requestCatalog(
+      fetchImpl,
+      "https://account.battle.net/api/",
+      signal,
+    );
+    return data?.authenticated === true
+      ? { authenticated: true, displayName: "Sesión Battle.net" }
+      : null;
+  } catch (error) {
+    if (error.code === "auth-required") return null;
+    throw error;
+  }
+}
+module.exports = {
+  parseGameAccounts,
+  fetchBattleNetCatalog,
+  readBattleNetSession,
+};

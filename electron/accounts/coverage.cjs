@@ -62,7 +62,8 @@ const platforms = [
     name: "Battle.net",
     local:
       "Registro de Blizzard con ejecutable dentro de la carpeta del juego y accesos compatibles. No lee product.db; encontrar solo el lanzador no confirma una instalación.",
-    account: "La consulta de biblioteca de cuenta no está implementada.",
+    account:
+      "Conexión experimental por sesión local, sin identidad de cuenta verificada. Importa registros de juegos sin certificar compra o acceso vigente. Las cuentas con clásicos aún no pueden importarse.",
   },
   {
     id: "riot",

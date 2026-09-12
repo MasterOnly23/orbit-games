@@ -80,3 +80,5 @@ Remove-Item Env:ORBIT_TEST_EXE
 Los scripts `qa-epic.cjs`, `qa-humble.cjs`, `qa-ubisoft.cjs` y `qa-itch.cjs` prueban flujos con respuestas controladas; no acreditan login real. `qa-vault.cjs` comprueba cifrado nativo con datos ficticios. Los informes y capturas están en `output/`, excluido de Git. `VERIFICACION.md` es un informe histórico de Orbit 1.0.0.
 
 El código se organiza en `electron/library`, `electron/accounts`, `electron/onboarding` y `electron/platform`, con sus interfaces en `src/features`. Las marcas y contenidos de terceros pertenecen a sus titulares; los avisos de referencias están en `THIRD_PARTY_NOTICES.md`.
+
+En el código posterior a alfa 5, Battle.net ofrece una conexión experimental por sesión local. Importa registros de juegos con acceso no verificado y rechaza cuentas con clásicos cuya edición aún no puede identificar. Faltan pruebas con cuentas reales y correspondencia automática con instalaciones: [cobertura Battle.net](BATTLENET_SUPPORT.md). El paquete alfa 5 existente conserva su generación anterior.

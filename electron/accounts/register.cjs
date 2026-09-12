@@ -11,6 +11,7 @@ const { gog } = require("./gog.cjs");
 const { epic } = require("./epic.cjs");
 const { humble } = require("./humble.cjs");
 const { ubisoft } = require("./ubisoft.cjs");
+const { battlenet } = require("./battlenet.cjs");
 const { platformCoverage } = require("./coverage.cjs");
 
 function registerAccounts({ store, save, win, handle, itchClientId }) {
@@ -22,6 +23,7 @@ function registerAccounts({ store, save, win, handle, itchClientId }) {
     epic,
     humble,
     ubisoft,
+    battlenet,
     ...(itch ? { itch } : {}),
   };
   const accounts = createAccountService({
