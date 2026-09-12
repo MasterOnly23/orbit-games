@@ -187,6 +187,56 @@ async function waitForLibrary(page, predicate, timeout = 90000) {
       path: path.join(output, "next-setup-accounts.png"),
       animations: "disabled",
     });
+    if (fromSource) {
+      const beforeFailure = await page.evaluate(() =>
+        window.orbit.getLibrary(),
+      );
+      await application.evaluate(() => {
+        const filesystem = process.mainModule.require("node:fs/promises");
+        const rename = filesystem.rename;
+        filesystem.rename = async (...args) => {
+          if (!String(args[1]).endsWith("library.json")) return rename(...args);
+          filesystem.rename = rename;
+          throw Object.assign(new Error("QA disk full"), { code: "ENOSPC" });
+        };
+      });
+      await page
+        .getByRole("button", {
+          name: "Guardar y abrir biblioteca",
+          exact: true,
+        })
+        .click();
+      await page.getByText(/No se pudo guardar la configuración/).waitFor();
+      assert.equal(
+        await page
+          .getByText(/No se pudo guardar la configuración/)
+          .evaluate((element) => document.activeElement?.contains(element)),
+        true,
+      );
+      const afterFailure = await page.evaluate(() => window.orbit.getLibrary());
+      for (const key of [
+        "games",
+        "settings",
+        "onboarding",
+        "scannedAt",
+        "warnings",
+        "discovery",
+      ])
+        assert.deepEqual(
+          afterFailure[key],
+          beforeFailure[key],
+          `Failed setup changed ${key}`,
+        );
+      await page
+        .getByRole("heading", {
+          name: "Tus cuentas, si las necesitas",
+          exact: true,
+        })
+        .waitFor();
+      await page.screenshot({
+        path: path.join(output, "next-setup-save-error.png"),
+      });
+    }
     await page
       .getByRole("button", { name: "Guardar y abrir biblioteca", exact: true })
       .click();

@@ -122,25 +122,35 @@ function registerOnboarding({
             inventoryScript,
           ),
         );
-      store.data.games = mergeGames(
-        [...preview.scan.games, ...manual],
-        store.data.games,
+      const changes = {
+        games: mergeGames([...preview.scan.games, ...manual], store.data.games),
+        settings: {
+          ...store.data.settings,
+          folders: preview.folders,
+          gameFolders: preview.gameFolders,
+          onlineMetadata: options.onlineMetadata,
+          ...locale,
+        },
+        onboarding: { completedAt: new Date().toISOString() },
+        scannedAt: preview.scan.scannedAt,
+        warnings: preview.scan.warnings,
+        discovery: { candidates: [], checkedAt: new Date().toISOString() },
+      };
+      const previous = Object.fromEntries(
+        Object.keys(changes).map((key) => [key, store.data[key]]),
       );
-      store.data.settings = {
-        ...store.data.settings,
-        folders: preview.folders,
-        gameFolders: preview.gameFolders,
-        onlineMetadata: options.onlineMetadata,
-        ...locale,
-      };
-      store.data.onboarding = { completedAt: new Date().toISOString() };
-      store.data.scannedAt = preview.scan.scannedAt;
-      store.data.warnings = preview.scan.warnings;
-      store.data.discovery = {
-        candidates: [],
-        checkedAt: new Date().toISOString(),
-      };
-      await save();
+      Object.assign(store.data, changes);
+      try {
+        await save();
+      } catch (error) {
+        // Preserve fields replaced by another operation while the write awaited.
+        for (const key of Object.keys(changes))
+          if (store.data[key] === changes[key]) store.data[key] = previous[key];
+        throw new Error(
+          "No se pudo guardar la configuración. Revisa el espacio disponible y los permisos de la carpeta de datos, y vuelve a intentarlo.",
+          { cause: error },
+        );
+      }
       setWatchers([...preview.scan.watchPaths, ...preview.gameFolders]);
       preview = null;
       enrich().catch(report);

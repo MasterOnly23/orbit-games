@@ -29,7 +29,14 @@ export default function SetupWizard({
   const [stopping, setStopping] = useState(false);
   const [notice, setNotice] = useState("");
   const heading = useRef(null);
+  const errorNotice = useRef(null);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (error) {
+      errorNotice.current?.scrollIntoView({ block: "center" });
+      errorNotice.current?.focus({ preventScroll: true });
+    }
+  }, [error]);
   useEffect(() => {
     heading.current?.scrollIntoView({ block: "start" });
     heading.current?.focus({ preventScroll: true });
@@ -127,7 +134,12 @@ export default function SetupWizard({
           </ol>
         </header>
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            ref={errorNotice}
+            tabIndex={-1}
+            severity="error"
+            sx={{ mb: 2 }}
+          >
             {error}
           </Alert>
         )}

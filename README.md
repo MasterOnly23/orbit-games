@@ -39,6 +39,8 @@ En el código posterior a alfa 4, **Ajustes → Idioma y región de las fichas**
 
 El asistente inicial también permite elegir idioma y región al revisar los juegos. Se guardan al finalizar y no activan por sí solos las consultas en línea.
 
+Si falla el guardado final del asistente, conserva la revisión para volver a intentarlo y lleva el foco a un mensaje sobre espacio y permisos. Ese intento fallido no inicia observadores de carpetas ni consultas de fichas.
+
 Alfa 4 añade etiquetas personales y filtro combinable, cancelación del escaneo general y cierre coordinado que espera los guardados pendientes. Si falla la escritura al salir, Orbit permanece abierto para permitir corregir el problema y guardar de nuevo.
 
 Alfa 4 incorpora **Ajustes → Exportar diagnóstico**. Guarda un JSON local con versiones, recuentos, estado de conexiones y códigos de error. No incluye nombres, rutas, notas, imágenes ni credenciales, y no lo envía automáticamente. No es un respaldo de la biblioteca.
