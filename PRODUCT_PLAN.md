@@ -1,5 +1,7 @@
 # Orbit Next — Producto para uso público
 
+El seguimiento actual con casillas y próximos pasos está en [ROADMAP.md](ROADMAP.md). Este documento conserva los requisitos de aceptación y el historial técnico; sus notas fechadas no sustituyen el estado vigente del roadmap.
+
 Objetivo vigente: conectar cuentas de todas las plataformas que podamos soportar de forma viable, detectar y organizar juegos instalados o pertenecientes a cuentas, y entregar una aplicación que el público pueda instalar, configurar, usar y mantener sin asistencia del desarrollador. La monetización se decidirá después; no es un requisito de esta entrega.
 
 Este objetivo amplía el primer asistente de `e9883d5`. No se considera terminado por tener una demostración local, conectores simulados ni pruebas de una sola plataforma.
