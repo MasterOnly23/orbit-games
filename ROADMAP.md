@@ -8,7 +8,7 @@ Actualizado: **13 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: lector paginado de catálogo EA basado en una referencia comunitaria actual, con controles de integridad y pruebas sintéticas. Transporte acotado implementado; autenticación pendiente. Véase EA_SUPPORT.md.
+- Último incremento cerrado: lector paginado de catálogo EA basado en una referencia comunitaria actual, con controles de integridad y pruebas sintéticas. Transporte acotado y observador de autorización preparados; integración del login pendiente. Véase EA_SUPPORT.md.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 13/09: observador EA limitado a ventana y endpoint, cancelación y exclusión de observadores simultáneos; preparado y probado, todavía sin integrar al login. La plataforma continúa pendiente.
 
 - 13/09: transporte EA conectado al lector, host fijo, bearer fuera de URLs, sin redirecciones, límites de 8 MiB/20 s y errores neutralizados. 107/107 pruebas aprobadas; autenticación y proveedor visible pendientes.
 

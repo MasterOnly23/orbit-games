@@ -22,6 +22,12 @@ Pruebas sintéticas: paginación completa/vacía, truncamiento, datos con errore
 
 `fetchEaCatalog` conecta ese transporte al lector paginado. Aún no obtiene tokens ni habilita un proveedor en la interfaz. QA sintética en `ea-transport.test.cjs`; no demuestra que la consulta persistida siga aceptada por EA con una cuenta real.
 
+## Captura de autorización preparada
+
+`ea-authorization.cjs` observa únicamente el endpoint GraphQL HTTPS exacto y el identificador de la ventana de autenticación propietaria. Excluye credenciales en URL, puertos alternativos, otros paths y encabezados ambiguos; conserva solo un bearer acotado en memoria. Cancelar o disponer el observador borra esa referencia y desregistra el listener. Se rechaza un segundo observador sobre la misma sesión para evitar que sustituya al primero.
+
+Esta pieza todavía no está conectada a `auth-window.cjs`. Su uso requiere una sesión exclusiva de Orbit y disponerla también al cerrar la ventana, al terminar y al fallar. La captura no acredita identidad: deberá consultarse y comprobarse la cuenta de EA antes de persistir la conexión. Pruebas sintéticas en `ea-authorization.test.cjs`; no se inspeccionaron cookies ni autorizaciones reales.
+
 ## Trabajo siguiente
 
 - Autenticar el transporte con una sesión real autorizada: el transporte HTTP ya está implementado y probado con respuestas sintéticas.
