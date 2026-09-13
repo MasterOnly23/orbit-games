@@ -84,4 +84,41 @@ test("diagnostics tolerate absent records and only admit known runtime fields", 
   assert.equal(result.createdAt, null);
   assert.equal(result.library.total, 0);
   assert.deepEqual(result.connections, []);
+  assert.deepEqual(result.connectors, []);
+});
+
+test("diagnostics identify registered connector versions without leaking descriptors or unknown values", () => {
+  const result = createDiagnostics(
+    {
+      accounts: [
+        {
+          providerId: "battlenet",
+          error: { code: "unsupported-catalog", message: "PRIVATE" },
+        },
+      ],
+    },
+    {
+      connectors: [
+        {
+          id: "steam",
+          version: "1",
+          implementation: "community",
+          sessionUrl: "PRIVATE",
+          credentials: "PRIVATE",
+        },
+        { id: "battlenet", version: "2.1", implementation: "community" },
+        { id: "gog", version: "PRIVATE", implementation: "PRIVATE" },
+        { id: "PRIVATE", version: "1" },
+        null,
+      ],
+    },
+  );
+  assert.equal(result.version, 2);
+  assert.deepEqual(result.connectors, [
+    { id: "battlenet", version: "2.1", implementation: "community" },
+    { id: "gog", version: "unknown", implementation: "unknown" },
+    { id: "steam", version: "1", implementation: "community" },
+  ]);
+  assert.equal(result.connections[0].errorCode, "unsupported-catalog");
+  assert.ok(!JSON.stringify(result).includes("PRIVATE"));
 });

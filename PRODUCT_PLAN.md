@@ -111,6 +111,8 @@ Las etapas pueden solaparse. La terminación se evalúa contra el objetivo compl
 
 ## Registro de avance
 
+- Diagnóstico posterior a alfa 5: esquema v2 con versiones y procedencia declarada de conectores activos, obtenidas del registro real y filtradas antes de exportar. No incluye descriptores de autenticación. El comando conserva su contrato pero se registra en `diagnostics/ipc.cjs`. QA de exportación/backups desde código verifica correspondencia de IDs con el registro, versiones reconocidas y ausencia de datos privados. Documentación de soporte y validación con proveedores reales pendientes.
+
 - Sesión Battle.net (código posterior a alfa 5): conector registrado con ventana aislada, lectura de autenticación sin campos privados, importación, sincronización y desconexión. Identifica la sesión local y declara que la identidad de cuenta no está verificada. La app muestra el límite de clásicos y no interpreta registros como compras. QA Electron con respuestas controladas pasa desde el botón de conexión, incluyendo rechazo de catálogo incompleto y conservación de juegos al desconectar. Login real, CAPTCHA/2FA, cambio de cuenta, clásicos e identidad local/remota siguen pendientes.
 
 - Lector de catálogo Battle.net (código posterior a alfa 5): contratos de `games-and-subs` y `classic-games`, límite de respuesta, cancelación y exclusión de campos privados. Los registros de juegos se presentan con acceso desconocido. Rechaza clásicos sin correspondencia de edición fiable antes de devolver un catálogo completo. Sigue sin conectarse al registro de proveedores: autenticación, clásicos, identidad estable, unión con instalaciones y QA de cuenta permanecen pendientes. Referencias y límites en [BATTLENET_SUPPORT.md](BATTLENET_SUPPORT.md).

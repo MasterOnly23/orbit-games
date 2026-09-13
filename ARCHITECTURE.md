@@ -23,6 +23,7 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 | `electron/library/xbox-local.cjs` | Reconocer paquetes de juego con MicrosoftGame.config y asociar identidades de Windows sin importar todas las aplicaciones Store. |
 | `electron/library/store.cjs` | Cargar y guardar formato persistido, cola de escritura y recuperación. |
 | `electron/library/backup.cjs` | Validar, exportar y restaurar catálogo y portadas. |
+| `electron/diagnostics/ipc.cjs` | Exportar el informe mediante diálogo local; recibe metadatos mínimos del registro de conectores. El esquema permitido permanece en `library/diagnostics.cjs`. |
 | `electron/onboarding` | Sugerencias y revisión de carpetas, candidatos y confirmación de la configuración inicial. |
 | `electron/lifecycle.cjs` | Registrar trabajo pendiente, cerrar admisión de operaciones y esperar su terminación. |
 

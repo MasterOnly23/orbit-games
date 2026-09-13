@@ -56,6 +56,14 @@ function registerAccounts({ store, save, win, handle, itchClientId }) {
   handle("accounts:sync", (id) => accounts.sync(id));
   handle("accounts:disconnect", (id) => accounts.disconnect(id));
 
-  return accounts;
+  return {
+    ...accounts,
+    connectorMetadata: () =>
+      Object.values(providers).map(({ id, version, implementation }) => ({
+        id,
+        version,
+        implementation,
+      })),
+  };
 }
 module.exports = { registerAccounts };

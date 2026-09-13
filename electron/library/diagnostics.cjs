@@ -39,6 +39,7 @@ const errors = new Set([
   "cancelled",
   "duplicate",
   "unsupported",
+  "unsupported-catalog",
   "busy",
 ]);
 const version = (value) =>
@@ -100,7 +101,7 @@ function createDiagnostics(data, runtime, now = new Date().toISOString()) {
   }
   return {
     format: "orbit-next-diagnostics",
-    version: 1,
+    version: 2,
     createdAt: timestamp(now),
     application: {
       version: version(runtime.version),
@@ -134,6 +135,29 @@ function createDiagnostics(data, runtime, now = new Date().toISOString()) {
       onboardingCompleted: !!timestamp(data.onboarding?.completedAt),
     },
     connections: [...connectionGroups.values()],
+    connectors: [
+      ...new Map(
+        records(runtime.connectors)
+          .filter((item) => providers.has(item.id))
+          .map((item) => [
+            item.id,
+            {
+              id: item.id,
+              version:
+                typeof item.version === "string" &&
+                /^\d+(?:\.\d+){0,3}(?:-[a-z]+\.\d+)?$/i.test(item.version) &&
+                item.version.length <= 32
+                  ? item.version
+                  : "unknown",
+              implementation: ["official", "community"].includes(
+                item.implementation,
+              )
+                ? item.implementation
+                : "unknown",
+            },
+          ]),
+      ).values(),
+    ].sort((a, b) => a.id.localeCompare(b.id)),
   };
 }
 module.exports = { createDiagnostics };

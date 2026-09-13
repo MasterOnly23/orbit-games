@@ -145,6 +145,22 @@ const { LibraryStore } = require("../electron/library/store.cjs");
         .waitFor();
       const diagnostic = JSON.parse(await fs.readFile(diagnosticFile, "utf8"));
       assert.equal(diagnostic.library.total, 1);
+      if (!process.env.ORBIT_TEST_EXE || diagnostic.version >= 2) {
+        assert.equal(diagnostic.version, 2);
+        const registered = await page.evaluate(() =>
+          window.orbit.accountProviders(),
+        );
+        assert.deepEqual(
+          diagnostic.connectors.map((item) => item.id).sort(),
+          registered.map((item) => item.id).sort(),
+        );
+        assert.ok(
+          diagnostic.connectors.every((item) => item.version !== "unknown"),
+        );
+        assert.ok(
+          diagnostic.connectors.some((item) => item.id === "battlenet"),
+        );
+      }
       assert.equal(
         diagnostic.application.version,
         require("../package.json").version,

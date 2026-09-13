@@ -14,6 +14,7 @@ const { LibraryStore } = require("./library/store.cjs");
 const { scanLibrary } = require("./library/scanner.cjs");
 
 const { registerIpc } = require("./ipc.cjs");
+const { registerDiagnostics } = require("./diagnostics/ipc.cjs");
 const { identity, configureRuntime } = require("./runtime.cjs");
 const { registerOnboarding } = require("./onboarding/ipc.cjs");
 
@@ -215,6 +216,12 @@ if (locked)
         win,
         handle,
         itchClientId: process.env.ORBIT_ITCH_CLIENT_ID,
+      });
+      registerDiagnostics({
+        handle,
+        win,
+        store,
+        connectorMetadata: accounts.connectorMetadata,
       });
       registerIpc({
         win,
