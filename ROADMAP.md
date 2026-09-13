@@ -8,7 +8,7 @@ Actualizado: **13 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 21 de 59 tareas cerradas; 38 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: diagnóstico v2 con versiones de conectores activos y exportación separada del IPC general. QA de informe y respaldo aprobado desde código; posterior a alfa 5.
+- Último incremento cerrado: ayuda integrada sin conexión y enlace fijo a reportes, con QA de teclado, respaldo y diagnóstico desde código; posterior a alfa 5. La disponibilidad remota del canal sigue sin verificar.
 - Siguiente trabajo: clásicos e identidad de Battle.net; continuar integraciones EA, Xbox y Amazon según viabilidad y fuentes mantenidas.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -115,7 +115,7 @@ El registro de proveedores y `accounts/coverage.cjs` describen la implementació
 - [ ] REL-05 — Matriz completa Windows 11 x64 y usuario estándar, incluida instalación/desinstalación/reinstalación.
 - [ ] REL-06 — Actualizador con recuperación y preservación de biblioteca, portadas y sesiones.
 - [ ] REL-07 — Firma y canal de distribución; completar revisión de licencias y política de privacidad.
-- [ ] REL-08 — Versiones de conectores en diagnóstico, documentación y canal de soporte. Versiones implementadas y verificadas con exportación real; documentación de ayuda y canal de soporte aún pendientes.
+- [ ] REL-08 — Versiones de conectores en diagnóstico, documentación y canal de soporte. Versiones, ayuda integrada sin conexión y documentación SUPPORT.md implementadas. QA de apertura de URL fija aprobado sin enviar datos. Falta verificar disponibilidad del canal remoto: GitHub devolvió error de servicio el 13/09.
 - [ ] REL-09 — Beta externa, corregir bloqueos y repetir aceptación sobre el mismo candidato.
 - [ ] REL-10 — Auditoría final de todos los requisitos de PRODUCT_PLAN.md antes de publicar.
 
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 13/09: ayuda local en Ajustes, guía SUPPORT.md y enlace a issues sin envío automático. QA de teclado y modo sin conexión, respaldo y diagnóstico aprobados; 95/95 pruebas y build correctos. REL-08 sigue parcial por verificación remota pendiente.
 
 - 13/09: diagnóstico v2 con versiones de los proveedores registrados, campos permitidos y error `unsupported-catalog`; pruebas de exportación sin datos privados. REL-08 sigue parcial.
 

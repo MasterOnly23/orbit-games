@@ -1,9 +1,12 @@
-const { app, dialog } = require("electron");
+const { app, dialog, shell } = require("electron");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const { createDiagnostics } = require("../library/diagnostics.cjs");
 
 function registerDiagnostics({ handle, win, store, connectorMetadata }) {
+  handle("support:open", () =>
+    shell.openExternal("https://github.com/MasterOnly23/orbit-games/issues"),
+  );
   handle("diagnostics:export", async () => {
     const result = await dialog.showSaveDialog(win, {
       title: "Guardar diagnóstico de Orbit Next",

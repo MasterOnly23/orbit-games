@@ -10,6 +10,7 @@ import {
 import { FolderPlus, X, Download, Upload } from "lucide-react";
 import AccountsPanel from "../accounts/AccountsPanel";
 import MetadataPreferences from "./MetadataPreferences";
+import HelpPanel from "./HelpPanel";
 export default function SettingsDialog({
   open,
   onClose,
@@ -181,6 +182,7 @@ export default function SettingsDialog({
         >
           Exportar diagnóstico
         </Button>
+        <HelpPanel action={action} />
         <p className="settings-footer">
           {appName} · {version}
           <br />

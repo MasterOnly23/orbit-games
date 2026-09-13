@@ -31,6 +31,7 @@ contextBridge.exposeInMainWorld("orbit", {
   cancelSetup: () => ipcRenderer.invoke("setup:cancel"),
   exportLibrary: () => ipcRenderer.invoke("library:export"),
   exportDiagnostics: () => ipcRenderer.invoke("diagnostics:export"),
+  openSupport: () => ipcRenderer.invoke("support:open"),
   importLibrary: () => ipcRenderer.invoke("library:import"),
   window: (action) => ipcRenderer.invoke("window:action", action),
   onChange: (callback) => {

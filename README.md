@@ -8,6 +8,8 @@ En el código posterior a alfa 5, el diagnóstico v2 incluye identificador, vers
 
 Biblioteca de juegos para Windows en desarrollo. La rama `feature/orbit-next-onboarding` mantiene una aplicación independiente de Orbit Games 1.0.0. El objetivo público exige Windows 10 y 11 x64; esa compatibilidad aún no está acreditada en ambos sistemas.
 
+Ayuda integrada y guía de reportes: [SUPPORT.md](SUPPORT.md). Incorporadas al código después de alfa 5; el botón abre GitHub sin enviar ni adjuntar datos.
+
 ## Alfa 5
 
 La versión `0.2.0-alpha.5` reúne el asistente inicial, detección de juegos, conexiones experimentales, lanzadores propios, respaldo con portadas y progreso personal. Consulta [las notas y límites de alfa 5](RELEASE_ALPHA5.md), [el plan completo](PRODUCT_PLAN.md) y [la matriz de Windows](WINDOWS_VALIDATION.md).
