@@ -24,6 +24,7 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 | `electron/library/store.cjs` | Cargar y guardar formato persistido, cola de escritura y recuperación. |
 | `electron/library/backup.cjs` | Validar, exportar y restaurar catálogo y portadas. |
 | `electron/diagnostics/ipc.cjs` | Abrir la URL fija de soporte y exportar el informe mediante diálogo local; recibe metadatos mínimos del registro de conectores. El esquema permitido permanece en `library/diagnostics.cjs`. |
+| `electron/onboarding/draft.cjs` | Validar y serializar borradores de elecciones; separar preferencias sin confirmar de ajustes activos, rechazar escrituras de instancias antiguas y permitir descarte. No conserva resultados de búsquedas ni sesiones de cuentas. Integración del formulario pendiente. |
 | `electron/onboarding` | Sugerencias y revisión de carpetas, candidatos y confirmación de la configuración inicial. |
 | `electron/lifecycle.cjs` | Registrar trabajo pendiente, cerrar admisión de operaciones y esperar su terminación. |
 

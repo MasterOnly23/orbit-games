@@ -3,6 +3,7 @@ const { abortable } = require("../library/abortable.cjs");
 const { scanLibrary, inspectManual } = require("../library/scanner.cjs");
 const { mergeGames } = require("../library/model.cjs");
 const { metadataOptions } = require("../library/metadata-options.cjs");
+const { createSetupDrafts } = require("./draft.cjs");
 const {
   validateFolders,
   findExecutableCandidates,
@@ -25,6 +26,10 @@ function registerOnboarding({
   let preview = null,
     busy = false;
   let searchController = null;
+  const drafts = createSetupDrafts({ store, save, isBusy: () => busy });
+  handle("setup:draft:begin", drafts.begin);
+  handle("setup:draft:write", drafts.write);
+  handle("setup:draft:discard", drafts.discard);
   const cancel = () => {
     if (!searchController) return false;
     searchController.abort(new Error("Búsqueda cancelada."));
@@ -111,6 +116,7 @@ function registerOnboarding({
     });
     busy = true;
     try {
+      await drafts.flush();
       const manual = [];
       for (const candidate of preview.candidates.filter((c) =>
         selected.includes(c.id),
@@ -151,6 +157,7 @@ function registerOnboarding({
           { cause: error },
         );
       }
+      drafts.invalidate();
       setWatchers([...preview.scan.watchPaths, ...preview.gameFolders]);
       preview = null;
       enrich().catch(report);

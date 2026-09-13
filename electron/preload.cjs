@@ -8,6 +8,11 @@ contextBridge.exposeInMainWorld("orbit", {
   setupSuggestions: () => ipcRenderer.invoke("setup:suggestions"),
   setupPreview: (options) => ipcRenderer.invoke("setup:preview", options),
   setupComplete: (options) => ipcRenderer.invoke("setup:complete", options),
+  beginSetupDraft: () => ipcRenderer.invoke("setup:draft:begin"),
+  saveSetupDraft: (session, choices) =>
+    ipcRenderer.invoke("setup:draft:write", session, choices),
+  discardSetupDraft: (session) =>
+    ipcRenderer.invoke("setup:draft:discard", session),
   getLibrary: () => ipcRenderer.invoke("library:get"),
   scan: () => ipcRenderer.invoke("library:scan"),
   updateGame: (id, patch) => ipcRenderer.invoke("game:update", id, patch),
