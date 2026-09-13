@@ -6,10 +6,10 @@ Actualizado: **13 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Alfa 5 local disponible; producto público todavía en desarrollo.** Hay biblioteca local, asistente, respaldo con portadas y conectores experimentales. Los cambios de cuenta Battle.net y su asociación por UID son posteriores al paquete alfa 5.
 
-**Avance de esta lista: 21 de 59 tareas cerradas; 38 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
+**Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: persistencia de borradores del asistente, validación y protección contra escrituras tardías. Implementación de servicio e IPC posterior a alfa 5; todavía no conectada al formulario.
-- Siguiente trabajo: conectar guardado y recuperación de borradores al asistente, con aviso de estado y descarte explícito; después continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon.
+- Último incremento cerrado: guardado automático, recuperación y descarte de borradores en el asistente. QA de cierre/reapertura y fallo de guardado con reintento aprobado desde código; posterior a alfa 5.
+- Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
 
@@ -35,7 +35,7 @@ En cada incremento: actualizar la casilla correspondiente, su evidencia y la sec
 - [x] ONB-03 — Idioma/región de fichas y permiso de consulta independientes. Evidencia: setup-locale.test.cjs y qa-desktop.cjs.
 - [x] ONB-04 — Cancelar búsqueda y reintentar; foco al cambiar de paso. Evidencia: setup-cancel.test.cjs y qa-desktop.cjs.
 - [x] ONB-05 — Recuperar el intento si falla el guardado final y mostrar el error visible. Evidencia: setup-persistence.test.cjs y qa-desktop.cjs.
-- [ ] ONB-06 — Reanudar configuración incompleta después de cerrar, con tratamiento claro de borradores y cancelación. Servicio e IPC de borradores implementados y probados en setup-draft.test.cjs: persistencia, validación, descarte, reintento y escrituras tardías. Falta conectar al formulario y validar cierre/reanudación visibles; los resultados de búsqueda se deben volver a comprobar.
+- [x] ONB-06 — Reanudar configuración incompleta después de cerrar, con tratamiento claro de borradores y cancelación. Guardado automático de carpetas/preferencias, aviso de estado, recuperación, descarte y reintento. Evidencia: setup-draft.test.cjs, qa-setup-draft.cjs y recorrido qa-desktop.cjs desde código. La búsqueda y la selección de ejecutables se repiten al reanudar; no se reutilizan resultados antiguos. Cierre normal verificado, sin afirmar resistencia a cortes de energía.
 - [ ] ONB-07 — Completar ayuda contextual y validar primer arranque tras instalación con usuario estándar en ambos Windows.
 
 ## 3. Plataformas y cuentas
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 13/09: ONB-06 cerrada. Formulario conectado a borradores mediante useSetupDraft; QA con tres arranques aislados, descarte persistente y fallo de escritura/reintento con foco visible. Ajustado margen del título para no quedar oculto por la barra fija.
 
 - 13/09: servicio de borradores separado del coordinador de onboarding; guarda elecciones sin aplicar ajustes, resultados de búsqueda ni sesiones. 99/99 pruebas aprobadas. ONB-06 sigue parcial hasta integrar la experiencia en la interfaz.
 

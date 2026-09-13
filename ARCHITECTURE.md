@@ -24,13 +24,15 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 | `electron/library/store.cjs` | Cargar y guardar formato persistido, cola de escritura y recuperación. |
 | `electron/library/backup.cjs` | Validar, exportar y restaurar catálogo y portadas. |
 | `electron/diagnostics/ipc.cjs` | Abrir la URL fija de soporte y exportar el informe mediante diálogo local; recibe metadatos mínimos del registro de conectores. El esquema permitido permanece en `library/diagnostics.cjs`. |
-| `electron/onboarding/draft.cjs` | Validar y serializar borradores de elecciones; separar preferencias sin confirmar de ajustes activos, rechazar escrituras de instancias antiguas y permitir descarte. No conserva resultados de búsquedas ni sesiones de cuentas. Integración del formulario pendiente. |
+| `electron/onboarding/draft.cjs` | Validar y serializar borradores de elecciones; separar preferencias sin confirmar de ajustes activos, rechazar escrituras de instancias antiguas y permitir descarte. No conserva resultados de búsquedas ni sesiones de cuentas. Consumido por el hook de borradores del formulario. |
 | `electron/onboarding` | Sugerencias y revisión de carpetas, candidatos y confirmación de la configuración inicial. |
 | `electron/lifecycle.cjs` | Registrar trabajo pendiente, cerrar admisión de operaciones y esperar su terminación. |
 
 Los módulos extraídos reciben sus dependencias y estado explícitamente. Ninguno importa `main.cjs`; no hay registro global de servicios ni un objeto de contexto que dé acceso indiscriminado a toda la aplicación. El preload sigue siendo la interfaz estrecha del renderer y no expone credenciales.
 
 ## Interfaz
+
+`src/features/onboarding/useSetupDraft.js` administra carga, persistencia y estado de guardado de elecciones del asistente. El componente conserva la búsqueda y revisión temporal; al reanudar repite ese paso. Las operaciones de avanzar/cancelar esperan el último guardado; el descarte reinicia el borrador sin desconectar cuentas.
 
 `MetadataLocaleFields` comparte los controles de idioma/región entre Ajustes y el asistente; sus valores pertenecen a cada flujo. `SetupMetadata` contiene la presentación y el permiso de consulta del onboarding, sin realizar guardados por su cuenta. La validación de valores admitidos reside en `electron/library/metadata-options.cjs` y se usa en ambos comandos IPC.
 

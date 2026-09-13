@@ -32,6 +32,7 @@
   color: #ff9d77;
 }
 .setup-heading h1 {
+  scroll-margin-top: 54px;
   margin: 15px 0 10px;
   font-size: 34px;
   letter-spacing: -0.035em;

@@ -4,6 +4,7 @@ import { FolderPlus, ArrowRight, CheckCircle2, X, Search } from "lucide-react";
 import "./setup.css";
 import AccountsPanel from "../accounts/AccountsPanel";
 import SetupMetadata from "./SetupMetadata";
+import useSetupDraft from "./useSetupDraft";
 
 export default function SetupWizard({
   settings,
@@ -13,16 +14,22 @@ export default function SetupWizard({
 }) {
   const [showAccounts, setShowAccounts] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [folders, setFolders] = useState(settings.folders || []);
-  const [gameFolders, setGameFolders] = useState(settings.gameFolders || []);
+  const draft = useSetupDraft(settings);
+  const {
+    folders,
+    gameFolders,
+    onlineMetadata: online,
+    metadataLanguage: language,
+    metadataCountry: country,
+  } = draft.choices;
+  const setFolders = (value) => draft.setField("folders", value);
+  const setGameFolders = (value) => draft.setField("gameFolders", value);
+  const setOnline = (value) => draft.setField("onlineMetadata", value);
+  const setLanguage = (value) => draft.setField("metadataLanguage", value);
+  const setCountry = (value) => draft.setField("metadataCountry", value);
   const [suggestions, setSuggestions] = useState([]);
   const [preview, setPreview] = useState(null);
   const [selected, setSelected] = useState([]);
-  const [online, setOnline] = useState(!!settings.onlineMetadata);
-  const [language, setLanguage] = useState(
-    settings.metadataLanguage || "spanish",
-  );
-  const [country, setCountry] = useState(settings.metadataCountry || "");
   const validLocale = /^(?:[A-Z]{2})?$/.test(country);
   const [busy, setBusy] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -32,15 +39,15 @@ export default function SetupWizard({
   const errorNotice = useRef(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    if (error) {
+    if (error || draft.error) {
       errorNotice.current?.scrollIntoView({ block: "center" });
       errorNotice.current?.focus({ preventScroll: true });
     }
-  }, [error]);
+  }, [error, draft.error]);
   useEffect(() => {
     heading.current?.scrollIntoView({ block: "start" });
     heading.current?.focus({ preventScroll: true });
-  }, [preview?.id, showAccounts]);
+  }, [preview?.id, showAccounts, draft.ready]);
   useEffect(() => {
     let active = true;
     window.orbit
@@ -99,6 +106,20 @@ export default function SetupWizard({
       ))}
     </ul>
   );
+  if (!draft.ready)
+    return (
+      <main className="setup-page">
+        <div className="setup-container">
+          <p role="status">Cargando configuración…</p>
+          {draft.error && (
+            <Alert ref={errorNotice} tabIndex={-1} severity="error">
+              {draft.error}
+              <Button onClick={() => draft.retry()}>Reintentar</Button>
+            </Alert>
+          )}
+        </div>
+      </main>
+    );
   return (
     <main className="setup-page">
       <div className="setup-titlebar">ORBIT GAMES NEXT</div>
@@ -148,6 +169,44 @@ export default function SetupWizard({
             {notice}
           </Alert>
         )}
+        <section aria-label="Borrador de configuración">
+          <p role="status">{draft.status}</p>
+          {draft.recovered && (
+            <p>
+              Recuperamos tus carpetas y preferencias. Vuelve a buscar y revisar
+              los juegos; los resultados anteriores no se reutilizan.
+            </p>
+          )}
+          <p className="setup-note">
+            Cerrar o cancelar conserva el borrador. Descartarlo restaura las
+            elecciones de este asistente; las cuentas ya conectadas se
+            conservan.
+          </p>
+          {draft.error && (
+            <Alert ref={errorNotice} tabIndex={-1} severity="error">
+              {draft.error}
+              <Button
+                disabled={busy || connecting}
+                onClick={() => draft.retry()}
+              >
+                Reintentar guardado
+              </Button>
+            </Alert>
+          )}
+          <Button
+            disabled={busy || connecting}
+            onClick={() =>
+              run(async () => {
+                await draft.discard();
+                setPreview(null);
+                setSelected([]);
+                setShowAccounts(false);
+              })
+            }
+          >
+            Descartar borrador y empezar de nuevo
+          </Button>
+        </section>
         {showAccounts ? (
           <section className="setup-panel">
             <AccountsPanel accounts={accounts} onBusyChange={setConnecting} />
@@ -349,7 +408,12 @@ export default function SetupWizard({
               <Button
                 disabled={busy || connecting}
                 color="inherit"
-                onClick={onCancel}
+                onClick={() =>
+                  run(async () => {
+                    await draft.flush();
+                    onCancel();
+                  })
+                }
               >
                 Cancelar
               </Button>
@@ -378,6 +442,7 @@ export default function SetupWizard({
               }
               onClick={() =>
                 run(async () => {
+                  await draft.flush();
                   if (!preview) {
                     setSearching(true);
                     try {

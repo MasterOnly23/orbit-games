@@ -14,6 +14,8 @@ Si GitHub no está disponible, conserva localmente los pasos y el diagnóstico p
 
 ## Recuperación y límites
 
+El asistente guarda automáticamente carpetas y preferencias en un borrador local. Espera el aviso de guardado antes de cerrar. Al volver a abrirlo recupera esas elecciones y pide buscar y revisar los juegos de nuevo. Cancelar conserva el borrador; **Descartar borrador y empezar de nuevo** vuelve a los ajustes vigentes sin desconectar cuentas. Si un guardado falla, el aviso permite reintentarlo. Esta función es posterior al paquete alfa 5.
+
 **Exportar biblioteca** guarda juegos y portadas locales; no guarda los archivos de instalación de los juegos ni las sesiones de plataformas. Al restaurar en otro PC hay que revisar las rutas y volver a conectar las cuentas.
 
 El objetivo del primer lanzamiento público es Windows 10 y 11 x64. Windows 10 sigue pendiente de validación real. Los conectores experimentales y sus límites se detallan dentro de Cuentas → Cobertura por plataforma; las pruebas controladas no certifican compatibilidad con todas las cuentas.
