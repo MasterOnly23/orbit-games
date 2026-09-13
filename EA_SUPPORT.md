@@ -16,9 +16,15 @@ Devuelve únicamente identidad de cuenta, identificador de oferta, nombre y nota
 
 Pruebas sintéticas: paginación completa/vacía, truncamiento, datos con errores, cambio de cuenta, cambio de total, bucles, duplicados, filtrado y cancelación. No se accedió a sesiones ni credenciales reales. El módulo aún no está registrado como proveedor ni conectado a la interfaz.
 
+## Transporte implementado
+
+`ea-transport.cjs` construye la consulta persistida de la referencia fijada, con destino exclusivo al host GraphQL de EA. Envía el bearer solo en el encabezado; no lo incluye en URLs, resultados ni mensajes de error. Omite cookies y caché y rechaza redirecciones. Cada página tiene un límite de 8 MiB y 20 segundos; cancelación y timeout interrumpen también lectores que no cooperan y cancelan su cuerpo. Distingue rechazo de sesión, límite de consultas y caída del servicio sin divulgar sus respuestas.
+
+`fetchEaCatalog` conecta ese transporte al lector paginado. Aún no obtiene tokens ni habilita un proveedor en la interfaz. QA sintética en `ea-transport.test.cjs`; no demuestra que la consulta persistida siga aceptada por EA con una cuenta real.
+
 ## Trabajo siguiente
 
-- Transporte HTTP con límites de bytes, tiempo, redirecciones y errores neutralizados.
+- Autenticar el transporte con una sesión real autorizada: el transporte HTTP ya está implementado y probado con respuestas sintéticas.
 - Autenticación en una sesión exclusiva de Orbit; expiración, renovación, segundo factor y cambio de cuenta.
 - Comprobar la consulta vigente con una cuenta autorizada, incluyendo cuenta vacía, ediciones, pruebas, suscripciones y títulos asociados a otras tiendas.
 - Verificar unión por oferta con instalaciones locales y acciones de EA app; no suponer que el nombre basta.
