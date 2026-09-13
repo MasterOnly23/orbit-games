@@ -30,6 +30,8 @@ La organización sigue responsabilidades del producto. Los módulos de una funci
 
 Los módulos extraídos reciben sus dependencias y estado explícitamente. Ninguno importa `main.cjs`; no hay registro global de servicios ni un objeto de contexto que dé acceso indiscriminado a toda la aplicación. El preload sigue siendo la interfaz estrecha del renderer y no expone credenciales.
 
+Los proveedores que necesitan estado por ventana pueden implementar `prepareSession`, que devuelve lector y limpieza. `auth-window.cjs` cancela su señal propia y dispone ese contexto en todas las salidas; la autorización nunca se expone por preload. `ea.cjs` usa este contrato, todavía sin registro público.
+
 ## Interfaz
 
 `src/features/onboarding/useSetupDraft.js` administra carga, persistencia y estado de guardado de elecciones del asistente. El componente conserva la búsqueda y revisión temporal; al reanudar repite ese paso. Las operaciones de avanzar/cancelar esperan el último guardado; el descarte reinicia el borrador sin desconectar cuentas.

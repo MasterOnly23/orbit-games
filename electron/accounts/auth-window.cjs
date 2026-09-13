@@ -57,6 +57,11 @@ async function readProviderSession({
       );
     let settled = false,
       checking = false;
+    const operation = new AbortController();
+    const operationSignal = signal
+      ? AbortSignal.any([signal, operation.signal])
+      : operation.signal;
+    let prepared = null;
     const preventDownload = (event) => event.preventDefault();
     isolated.on("will-download", preventDownload);
     const finish = (error, result) => {
@@ -65,6 +70,12 @@ async function readProviderSession({
       clearInterval(poll);
       clearTimeout(timeout);
       signal?.removeEventListener("abort", cancelled);
+      operation.abort();
+      try {
+        prepared?.dispose?.();
+      } catch {
+        /* Window must still close. */
+      }
       isolated.removeListener("will-download", preventDownload);
       windows.delete(win);
       if (!win.isDestroyed()) win.destroy();
@@ -87,9 +98,10 @@ async function readProviderSession({
       try {
         // The provider's session material goes only to the Electron main process.
         // There is no Orbit preload or app IPC bridge in this remote window.
-        const value = provider.readSession
-          ? await provider.readSession({
-              signal,
+        const readSession = prepared?.readSession || provider.readSession;
+        const value = readSession
+          ? await readSession({
+              signal: operationSignal,
               fetchImpl: isolated.fetch.bind(isolated),
             })
           : await win.webContents.executeJavaScript(provider.readSessionScript);
@@ -105,15 +117,21 @@ async function readProviderSession({
               ? { fetchImpl: isolated.fetch.bind(isolated) }
               : {}),
           });
-        else if (!interactive && !win.webContents.isLoading())
+        else if (
+          !interactive &&
+          !prepared?.waitForSession &&
+          !win.webContents.isLoading()
+        )
           finish(
             new ProviderError(
               "auth-required",
               `Vuelve a conectar tu cuenta de ${provider.name}.`,
             ),
           );
-      } catch {
-        if (!interactive)
+      } catch (error) {
+        if (prepared?.propagateErrors && error instanceof ProviderError)
+          finish(error);
+        else if (!interactive)
           finish(
             new ProviderError(
               "auth-required",
@@ -166,6 +184,22 @@ async function readProviderSession({
     win.on("closed", () => {
       if (!settled) cancelled();
     });
+    try {
+      prepared = provider.prepareSession?.({
+        isolated,
+        webContents: win.webContents,
+        signal: operationSignal,
+        interactive,
+      });
+    } catch {
+      finish(
+        new ProviderError(
+          "unavailable",
+          "No se pudo preparar la conexión. Vuelve a intentarlo.",
+        ),
+      );
+      return;
+    }
     win
       .loadURL(provider.sessionUrl)
       .catch(() =>
