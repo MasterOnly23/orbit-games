@@ -32,7 +32,15 @@ El adaptador `ea.cjs` conecta la captura al contrato `prepareSession` de `auth-w
 
 `ea.cjs` prepara la captura para una ventana propia, consulta el catálogo con el bearer y devuelve identidad y catálogo validados, sin devolver el bearer al servicio de cuentas. Tras volver a la página inicial de EA navega una sola vez a la página de ofertas usada por la referencia. Los hosts de navegación son explícitos; su cobertura de login real, región y segundo factor aún debe comprobarse.
 
-`qa-auth-lifecycle.cjs` verifica con ventanas Electron y respuestas locales que éxito y cierre cancelan la señal, disponen el contexto una sola vez y mantienen Node y preload deshabilitados. `qa-battlenet.cjs` sigue pasando. Estas pruebas no ejercitan el sitio real de EA ni prueban todavía la captura a través de su tráfico real.
+`qa-auth-lifecycle.cjs` verifica con ventanas Electron y respuestas locales que éxito y cierre cancelan la señal, disponen el contexto una sola vez y mantienen Node y preload deshabilitados. `qa-battlenet.cjs` sigue pasando. Estas pruebas no ejercitan el sitio real de EA. La captura con tráfico HTTPS controlado se verifica por separado a continuación.
+
+## Captura verificada con tráfico Electron
+
+`node scripts/qa-ea-session.cjs` arranca un servidor HTTPS en loopback con certificado efímero generado mediante OpenSSL. Una instancia Electron de QA resuelve todos los hosts al servidor local y permite ese certificado solo mediante argumentos de ese proceso de prueba; la aplicación distribuida no incorpora esos argumentos.
+
+El recorrido navega desde login a inicio y ofertas, emite una solicitud del renderer con autorización sintética y ejecuta la consulta del catálogo desde el proceso principal. Se comprueban identidad, biblioteca vacía completa y ausencia del bearer en el resultado. El servidor rechaza solicitudes de catálogo sin el bearer de la prueba. El perfil es exclusivo bajo la carpeta QA de Next.
+
+Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el evento `onBeforeSendHeaders`; por eso no sirve para comprobar este mecanismo. El servidor local sí ejercita la pila de red de Electron. Esto no prueba el login real, segundo factor, expiración, catálogo no vacío ni persistencia de una conexión EA en Orbit.
 
 ## Trabajo siguiente
 
