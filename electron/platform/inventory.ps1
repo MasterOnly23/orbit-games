@@ -35,7 +35,7 @@ try { $steamPath=(Get-ItemProperty 'HKCU:\Software\Valve\Steam').SteamPath } cat
 $uninstall = @()
 foreach ($key in @('HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall','HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall','HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall')) {
   if (Test-Path $key) {
-    $uninstall += @(Get-ChildItem $key -ErrorAction SilentlyContinue | Get-ItemProperty -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -and ($_.Publisher -match 'Electronic Arts|Ubisoft|Rockstar|GOG.com|Blizzard' -or $_.PSChildName -match '^Steam App|^Uplay Install|_is1$') } | Select-Object DisplayName,InstallLocation,DisplayIcon,Publisher,PSChildName)
+    $uninstall += @(Get-ChildItem $key -ErrorAction SilentlyContinue | Get-ItemProperty -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -and ($_.Publisher -match 'Electronic Arts|Ubisoft|Rockstar|GOG.com|Blizzard' -or $_.PSChildName -match '^Steam App|^Uplay Install|_is1$') } | Select-Object DisplayName,InstallLocation,DisplayIcon,Publisher,PSChildName,UninstallString)
   }
 }
 $packages = @(); $packageScanOk = $true

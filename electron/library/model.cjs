@@ -1,5 +1,6 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
+const { sameBattleNetProduct } = require("./battlenet-identity.cjs");
 const normalize = (value) =>
   String(value || "")
     .replace(/[™®©]/g, "")
@@ -98,7 +99,10 @@ function mergeGames(detected, previous = []) {
   for (const candidate of detected) {
     // Same provider/title or exact launch identity only: keep editions and different stores separate.
     const existing = result.find(
-      (g) => g.id === candidate.id || sameProviderTitle(g, candidate),
+      (g) =>
+        g.id === candidate.id ||
+        sameBattleNetProduct(g, candidate) ||
+        sameProviderTitle(g, candidate),
     );
     if (existing) {
       if (candidate.status === "installed" && existing.status !== "installed")
@@ -120,6 +124,7 @@ function mergeGames(detected, previous = []) {
       previous.find(
         (g) =>
           g.id === candidate.id ||
+          sameBattleNetProduct(g, candidate) ||
           sameProviderTitle(g, candidate) ||
           g.sources?.some((p) => candidate.sources.includes(p)),
       );

@@ -3,6 +3,7 @@ const { game } = require("./detected-game.cjs");
 const { executableFromIcon } = require("./model.cjs");
 const { fileAvailability } = require("./availability.cjs");
 const { abortable } = require("./abortable.cjs");
+const { battleNetTitleId } = require("./battlenet-identity.cjs");
 
 // Installation records only. No Battle.net sessions or account database reads.
 async function scanBattleNet({
@@ -53,6 +54,7 @@ async function scanBattleNet({
     games.push(
       game(entry.DisplayName, "Battle.net", `battlenet:registry:${key}`, {
         ...state,
+        providerId: battleNetTitleId(entry),
         installPath: directory,
         targetExecutable: executable,
         launch: { kind: "file", target: executable },
