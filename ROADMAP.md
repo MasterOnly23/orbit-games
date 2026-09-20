@@ -1,6 +1,6 @@
 # Orbit Next — Roadmap de seguimiento
 
-Actualizado: **13 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboarding`, separado de Orbit estable.
+Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboarding`, separado de Orbit estable.
 
 ## Dónde estamos
 
@@ -8,7 +8,7 @@ Actualizado: **13 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: lector paginado de catálogo EA basado en una referencia comunitaria actual, con controles de integridad y pruebas sintéticas. Adaptador EA integrado al contrato de ventana aislada; captura con HTTPS local verificada; registro visible y validación real pendientes. Véase EA_SUPPORT.md.
+- Último incremento cerrado: EA app habilitada como conexión experimental en código; QA con HTTPS local, juego importado, sincronización, cambio de cuenta rechazado, persistencia y desconexión. Falta validación real. Véase EA_SUPPORT.md.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -51,7 +51,7 @@ El registro de proveedores y `accounts/coverage.cjs` describen la implementació
 | Humble Bundle | Experimental por sesión | Descargas manuales | Cuenta real, contenido admitido y límites de canje |
 | itch.io | Condicionado al registro OAuth | Recibos de instalación | Registrar cliente, cuenta real y bibliotecas especiales |
 | Battle.net | Experimental posterior a alfa 5 | Registro Blizzard y accesos | Clásicos, identidad de cuenta, product.db y prueba real |
-| EA app | Lector de catálogo en desarrollo; sin conexión | Registro y accesos | Autenticación aislada, unión por oferta y validación real |
+| EA app | Experimental posterior a alfa 5 | Registro y accesos | Autenticación aislada, unión por oferta y validación real |
 | Xbox / Microsoft Store | Pendiente | Paquetes con manifiesto y accesos | Biblioteca, Game Pass y distinción PC/consola |
 | Amazon Games | Pendiente | Alta manual | Conector y detector específicos |
 | Rockstar Games | Pendiente | Accesos/alta manual | Viabilidad de cuenta y detección específica |
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 20/09: EA registrada y visible en Ajustes; QA con catálogo no vacío y persistencia, conservación ante truncamiento/cambio de cuenta y desconexión sin pérdida de notas/favoritos. 111/111 pruebas y build aprobados. Plataforma sigue pendiente de validación real.
 
 - 13/09: qa-ea-session.cjs aprobado con servidor HTTPS local, solicitud real del renderer, captura y catálogo desde main. Confirma el mecanismo en Electron sin usar cuentas reales. No certifica todavía importación persistida ni habilita el botón EA.
 

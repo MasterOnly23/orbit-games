@@ -55,7 +55,8 @@ const platforms = [
     id: "ea",
     name: "EA app",
     local: "Registro de Windows y accesos directos o enlaces compatibles.",
-    account: "La consulta de biblioteca de cuenta no está implementada.",
+    account:
+      "Conexión experimental por sesión web aislada. Importa el catálogo PC sin certificar compra permanente ni vigencia de suscripciones. Login real, segundo factor y unión con instalaciones pendientes de validación.",
   },
   {
     id: "battlenet",

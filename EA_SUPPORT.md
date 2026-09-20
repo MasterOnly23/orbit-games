@@ -1,6 +1,6 @@
 # EA app: integración en desarrollo
 
-Revisión: 13/09/2026. La conexión de cuenta todavía no está habilitada en Orbit Next. La detección local existente continúa disponible.
+Revisión: 20/09/2026. La conexión de cuenta está habilitada como experimental en el código posterior a alfa 5; no incluida en ese instalador. La detección local existente continúa disponible.
 
 ## Referencia actual
 
@@ -14,19 +14,19 @@ Su [EaWebsite.cs](https://github.com/Jeshibu/PlayniteExtensions/blob/959ef2e12be
 
 Devuelve únicamente identidad de cuenta, identificador de oferta, nombre y nota de acceso. Excluye lanzadores y productos explícitamente ajenos a PC. Pruebas y suscripciones reciben notas propias; el acceso permanece sin verificar. No devuelve identificadores de entitlement, métodos crudos ni respuestas originales. Los códigos de oferta necesitan validación real antes de usarse para unir instalaciones o lanzar juegos.
 
-Pruebas sintéticas: paginación completa/vacía, truncamiento, datos con errores, cambio de cuenta, cambio de total, bucles, duplicados, filtrado y cancelación. No se accedió a sesiones ni credenciales reales. El módulo aún no está registrado como proveedor ni conectado a la interfaz.
+Pruebas sintéticas: paginación completa/vacía, truncamiento, datos con errores, cambio de cuenta, cambio de total, bucles, duplicados, filtrado y cancelación. No se accedió a sesiones ni credenciales reales. El proveedor está registrado y se ofrece desde Ajustes y el panel de cuentas del asistente.
 
 ## Transporte implementado
 
 `ea-transport.cjs` construye la consulta persistida de la referencia fijada, con destino exclusivo al host GraphQL de EA. Envía el bearer solo en el encabezado; no lo incluye en URLs, resultados ni mensajes de error. Omite cookies y caché y rechaza redirecciones. Cada página tiene un límite de 8 MiB y 20 segundos; cancelación y timeout interrumpen también lectores que no cooperan y cancelan su cuerpo. Distingue rechazo de sesión, límite de consultas y caída del servicio sin divulgar sus respuestas.
 
-`fetchEaCatalog` conecta ese transporte al lector paginado. Aún no obtiene tokens ni habilita un proveedor en la interfaz. QA sintética en `ea-transport.test.cjs`; no demuestra que la consulta persistida siga aceptada por EA con una cuenta real.
+`fetchEaCatalog` conecta ese transporte al lector paginado. La autorización la aporta el adaptador de sesión; el transporte no inicia el login por sí solo. QA sintética en `ea-transport.test.cjs`; no demuestra que la consulta persistida siga aceptada por EA con una cuenta real.
 
 ## Captura de autorización preparada
 
 `ea-authorization.cjs` observa únicamente el endpoint GraphQL HTTPS exacto y el identificador de la ventana de autenticación propietaria. Excluye credenciales en URL, puertos alternativos, otros paths y encabezados ambiguos; conserva solo un bearer acotado en memoria. Cancelar o disponer el observador borra esa referencia y desregistra el listener. Se rechaza un segundo observador sobre la misma sesión para evitar que sustituya al primero.
 
-El adaptador `ea.cjs` conecta la captura al contrato `prepareSession` de `auth-window.cjs`. La ventana crea una señal propia y cancela lecturas y dispone el contexto al cerrar, terminar o fallar. El adaptador todavía no se registra en la lista pública de proveedores. La captura no acredita identidad: deberá consultarse y comprobarse la cuenta de EA antes de persistir la conexión. Pruebas sintéticas en `ea-authorization.test.cjs`; no se inspeccionaron cookies ni autorizaciones reales.
+El adaptador `ea.cjs` conecta la captura al contrato `prepareSession` de `auth-window.cjs`. La ventana crea una señal propia y cancela lecturas y dispone el contexto al cerrar, terminar o fallar. El adaptador está registrado como conexión experimental. La captura no acredita identidad: deberá consultarse y comprobarse la cuenta de EA antes de persistir la conexión. Pruebas sintéticas en `ea-authorization.test.cjs`; no se inspeccionaron cookies ni autorizaciones reales.
 
 ## Adaptador y ciclo de vida
 
@@ -38,9 +38,9 @@ El adaptador `ea.cjs` conecta la captura al contrato `prepareSession` de `auth-w
 
 `node scripts/qa-ea-session.cjs` arranca un servidor HTTPS en loopback con certificado efímero generado mediante OpenSSL. Una instancia Electron de QA resuelve todos los hosts al servidor local y permite ese certificado solo mediante argumentos de ese proceso de prueba; la aplicación distribuida no incorpora esos argumentos.
 
-El recorrido navega desde login a inicio y ofertas, emite una solicitud del renderer con autorización sintética y ejecuta la consulta del catálogo desde el proceso principal. Se comprueban identidad, biblioteca vacía completa y ausencia del bearer en el resultado. El servidor rechaza solicitudes de catálogo sin el bearer de la prueba. El perfil es exclusivo bajo la carpeta QA de Next.
+El recorrido navega desde login a inicio y ofertas, emite una solicitud del renderer con autorización sintética y ejecuta la consulta del catálogo desde el proceso principal. Se comprueban identidad, catálogo con un juego y ausencia del bearer en el resultado. La suite unitaria también cubre el catálogo vacío. El servidor rechaza solicitudes de catálogo sin el bearer de la prueba. El perfil es exclusivo bajo la carpeta QA de Next.
 
-Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el evento `onBeforeSendHeaders`; por eso no sirve para comprobar este mecanismo. El servidor local sí ejercita la pila de red de Electron. Esto no prueba el login real, segundo factor, expiración, catálogo no vacío ni persistencia de una conexión EA en Orbit.
+Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el evento `onBeforeSendHeaders`; por eso no sirve para comprobar este mecanismo. El servidor local sí ejercita la pila de red de Electron. Se amplió el recorrido al servicio de cuentas: importa un juego, rechaza catálogo truncado y cambio de identidad sin alterar los juegos, sincroniza, desconecta y recarga el almacén conservando notas y favoritos. Verifica también el botón Conectar EA app de Ajustes. Esto no prueba el login real, segundo factor ni expiración de sesión del proveedor.
 
 ## Trabajo siguiente
 
@@ -48,6 +48,6 @@ Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el ev
 - Autenticación en una sesión exclusiva de Orbit; expiración, renovación, segundo factor y cambio de cuenta.
 - Comprobar la consulta vigente con una cuenta autorizada, incluyendo cuenta vacía, ediciones, pruebas, suscripciones y títulos asociados a otras tiendas.
 - Verificar unión por oferta con instalaciones locales y acciones de EA app; no suponer que el nombre basta.
-- Integrar UI, desconexión y diagnóstico; revisar requisitos de distribución y atribución.
+- Validar UI, desconexión y diagnóstico con cuenta real; revisar requisitos de distribución. La integración de UI y desconexión ya pasó la prueba controlada, y el registro de diagnóstico incluye los proveedores habilitados.
 
 No se necesita decidir un servidor propio para el lector implementado. La viabilidad integral sigue pendiente de autenticación y verificación real.

@@ -160,6 +160,12 @@ export default function AccountsPanel({ accounts = [], onBusyChange }) {
         importación de cuentas con juegos clásicos sigue pendiente.
       </Typography>
       <Typography variant="caption" color="text.secondary">
+        EA app importa el catálogo PC mediante una conexión experimental. Las
+        pruebas y suscripciones no acreditan compra permanente. Puede requerir
+        iniciar sesión de nuevo; la vinculación con instalaciones locales aún
+        necesita validación.
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
         Desconectar elimina la sesión de Orbit de este equipo y conserva los
         juegos importados. Puedes usar la biblioteca local sin conectar cuentas.
       </Typography>
