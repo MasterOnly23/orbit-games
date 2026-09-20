@@ -8,7 +8,7 @@ Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: lector de correspondencias oferta/contenido EA con validación de lotes y exclusión de ambigüedades entre ofertas. 118/118 pruebas aprobadas; transporte de esa consulta y uso en combinación pendientes.
+- Último incremento cerrado: consulta HTTP de correspondencias EA conectada al lector validado, con lotes, límites y sin autorización de cuenta. 119/119 pruebas aprobadas; aplicación del mapa a juegos locales/remotos pendiente.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 20/09: POST getLegacyCatalogDefs pide exclusivamente oferta y contenido y comparte transporte acotado con el catálogo. QA de lotes y fallos completa; todavía no une registros ni modifica bibliotecas.
 
 - 20/09: lector EA legacyOffers preparado; conserva solo identificadores y no importa rutas/parámetros remotos. Excluye contenidos compartidos por varias ofertas, valida todos los lotes y admite cancelación. Todavía no modifica la combinación de juegos.
 

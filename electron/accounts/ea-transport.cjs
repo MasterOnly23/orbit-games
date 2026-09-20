@@ -1,6 +1,7 @@
 const { ProviderError } = require("./provider-error.cjs");
 const { abortable } = require("../library/abortable.cjs");
 const { readEaCatalog } = require("./ea-catalog.cjs");
+const { readEaOfferMapping } = require("./ea-offers.cjs");
 
 // Protocol reference pinned in EA_SUPPORT.md; not an official public EA API.
 function catalogUrl(next) {
@@ -51,24 +52,25 @@ function catalogUrl(next) {
   return url.href;
 }
 
-async function requestEaPage({
+async function requestEaJson({
   fetchImpl,
+  url,
+  body,
   token,
-  next,
   signal,
   timeoutMs = 20000,
 }) {
   if (
-    typeof token !== "string" ||
-    !token.length ||
-    token.length > 16384 ||
-    /\s/.test(token)
+    token !== undefined &&
+    (typeof token !== "string" ||
+      !token.length ||
+      token.length > 16384 ||
+      /\s/.test(token))
   )
     throw new ProviderError(
       "auth-required",
       "Vuelve a conectar tu cuenta de EA.",
     );
-  const url = catalogUrl(next);
   const timed = AbortSignal.timeout(timeoutMs);
   const requestSignal = signal ? AbortSignal.any([signal, timed]) : timed;
   let reader;
@@ -76,12 +78,16 @@ async function requestEaPage({
     const response = await abortable(
       () =>
         fetchImpl(url, {
-          method: "GET",
+          method: body ? "POST" : "GET",
+          ...(body ? { body: JSON.stringify(body) } : {}),
           redirect: "error",
           credentials: "omit",
           cache: "no-store",
           headers: {
-            Authorization: `Bearer ${token}`,
+            ...(token !== undefined
+              ? { Authorization: `Bearer ${token}` }
+              : {}),
+            ...(body ? { "Content-Type": "application/json" } : {}),
             Accept: "application/json",
           },
           signal: requestSignal,
@@ -134,10 +140,42 @@ async function requestEaPage({
   }
 }
 
+async function requestEaPage(options) {
+  return requestEaJson({
+    ...options,
+    token: options.token ?? "",
+    url: catalogUrl(options.next),
+  });
+}
+
+async function fetchEaOfferMapping({ offerIds, fetchImpl, signal }) {
+  return readEaOfferMapping(
+    offerIds,
+    (batch) =>
+      requestEaJson({
+        fetchImpl,
+        signal,
+        url: "https://service-aggregation-layer.juno.ea.com/graphql",
+        body: {
+          operationName: "getLegacyCatalogDefs",
+          query:
+            "query getLegacyCatalogDefs($offerIds: [String!]!, $locale: Locale) { legacyOffers(offerIds: $offerIds, locale: $locale) { offerId: id contentId } }",
+          variables: { offerIds: batch, locale: "DEFAULT" },
+        },
+      }),
+    { signal },
+  );
+}
+
 async function fetchEaCatalog({ fetchImpl, token, signal }) {
   return readEaCatalog(
     (next) => requestEaPage({ fetchImpl, token, next, signal }),
     { signal },
   );
 }
-module.exports = { catalogUrl, requestEaPage, fetchEaCatalog };
+module.exports = {
+  catalogUrl,
+  requestEaPage,
+  fetchEaCatalog,
+  fetchEaOfferMapping,
+};

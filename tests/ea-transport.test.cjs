@@ -4,6 +4,7 @@ const {
   catalogUrl,
   requestEaPage,
   fetchEaCatalog,
+  fetchEaOfferMapping,
 } = require("../electron/accounts/ea-transport.cjs");
 const token = "SYNTHETIC-SECRET";
 const empty = {
@@ -38,6 +39,45 @@ test("EA transport fixes origin, isolates bearer header and connects to catalog 
   assert.equal(
     JSON.parse(url.searchParams.get("variables")).next,
     "https://untrusted.example/?a=b&c=d",
+  );
+});
+
+test("EA offer mapping transport batches POST requests without account authorization or executable fields", async () => {
+  const offers = Array.from({ length: 101 }, (_, index) => `offer${index}`);
+  const calls = [];
+  const mapping = await fetchEaOfferMapping({
+    offerIds: offers,
+    fetchImpl: async (url, options) => {
+      assert.equal(
+        url,
+        "https://service-aggregation-layer.juno.ea.com/graphql",
+      );
+      assert.equal(options.method, "POST");
+      assert.equal(options.headers.Authorization, undefined);
+      assert.equal(options.credentials, "omit");
+      assert.equal(options.redirect, "error");
+      const body = JSON.parse(options.body);
+      assert.equal(body.operationName, "getLegacyCatalogDefs");
+      assert.ok(!body.query.includes("executePath"));
+      calls.push(body.variables.offerIds.length);
+      return Response.json({
+        data: {
+          legacyOffers: body.variables.offerIds.map((offerId) => ({
+            offerId,
+            contentId: `content.${offerId}`,
+          })),
+        },
+      });
+    },
+  });
+  assert.deepEqual(calls, [100, 1]);
+  assert.equal(mapping.length, 101);
+  await assert.rejects(
+    fetchEaOfferMapping({
+      offerIds: ["offer"],
+      fetchImpl: async () => Response.json({ data: { legacyOffers: [] } }),
+    }),
+    { code: "incomplete" },
   );
 });
 

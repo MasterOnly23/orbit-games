@@ -56,7 +56,13 @@ Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlace
 
 El coordinador procesa hasta 10.000 ofertas, en lotes de 100 y con cancelación. Si dos ofertas comparten contenido, esa correspondencia queda excluida aunque la colisión aparezca en otro lote. Un contenido nulo no se sustituye por el identificador de oferta. Un lote incompleto impide devolver un mapa parcial.
 
-Pruebas en `ea-offers.test.cjs`: selección de campos, lotes incompletos, contenido ausente, ambigüedad entre lotes y cancelación; suite completa 118/118. El lector aún no está conectado al transporte HTTP ni a la combinación de registros. No modifica bibliotecas existentes.
+Pruebas en `ea-offers.test.cjs`: selección de campos, lotes incompletos, contenido ausente, ambigüedad entre lotes y cancelación; suite completa 118/118. El lector está conectado al transporte HTTP mediante `fetchEaOfferMapping`; todavía falta usar el resultado en la combinación de registros. No modifica bibliotecas existentes.
+
+## Transporte de correspondencias
+
+`fetchEaOfferMapping` envía `getLegacyCatalogDefs` por POST al host fijo de EA. La consulta selecciona solo `offerId: id` y `contentId`. Sigue el flujo sin bearer de la referencia, con cookies omitidas; reutiliza el lector HTTP acotado a 8 MiB/20 segundos, rechazo de redirecciones, cancelación y errores neutralizados.
+
+Prueba controlada con 101 ofertas verifica dos lotes, contrato POST, ausencia de autorización y rechazo de lote incompleto. Suite completa: 119/119. No se consultó el servicio real de EA ni se aplicaron aún correspondencias a la biblioteca.
 
 ## Trabajo siguiente
 
