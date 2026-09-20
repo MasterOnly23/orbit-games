@@ -50,6 +50,14 @@ Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita
 
 Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlaces ambiguos y 115/115 pruebas de regresión aprobadas, incluida la reproducción del fallo antes de aplicar la corrección.
 
+## Lector de correspondencias preparado
+
+`ea-offers.cjs` interpreta `data.legacyOffers` de la consulta `getLegacyCatalogDefs` documentada en el código de referencia. Guarda exclusivamente `offerId` y `contentId`; descarta rutas, parámetros, directivas de registro y otros campos. Exige que cada lote devuelva exactamente sus ofertas solicitadas, sin errores GraphQL ni duplicados.
+
+El coordinador procesa hasta 10.000 ofertas, en lotes de 100 y con cancelación. Si dos ofertas comparten contenido, esa correspondencia queda excluida aunque la colisión aparezca en otro lote. Un contenido nulo no se sustituye por el identificador de oferta. Un lote incompleto impide devolver un mapa parcial.
+
+Pruebas en `ea-offers.test.cjs`: selección de campos, lotes incompletos, contenido ausente, ambigüedad entre lotes y cancelación; suite completa 118/118. El lector aún no está conectado al transporte HTTP ni a la combinación de registros. No modifica bibliotecas existentes.
+
 ## Trabajo siguiente
 
 - Autenticar el transporte con una sesión real autorizada: el transporte HTTP ya está implementado y probado con respuestas sintéticas.

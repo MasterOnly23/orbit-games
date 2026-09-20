@@ -8,7 +8,7 @@ Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: corregida una asociación falsa entre oferta EA y juego local homónimo al importar primero la cuenta. Regresión reproducida y resuelta; 115/115 pruebas aprobadas. La unión correcta por correspondencia oferta/contenido sigue pendiente.
+- Último incremento cerrado: lector de correspondencias oferta/contenido EA con validación de lotes y exclusión de ambigüedades entre ofertas. 118/118 pruebas aprobadas; transporte de esa consulta y uso en combinación pendientes.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 20/09: lector EA legacyOffers preparado; conserva solo identificadores y no importa rutas/parámetros remotos. Excluye contenidos compartidos por varias ofertas, valida todos los lotes y admite cancelación. Todavía no modifica la combinación de juegos.
 
 - 20/09: bloqueo de combinación EA por título cuando falta correspondencia de oferta. Se preservan por separado estado local y derechos/notas de cuenta; la tarea de unión y resolución de duplicados sigue abierta.
 
