@@ -81,6 +81,13 @@ function validLaunchUri(uri) {
 function sameProviderTitle(a, b) {
   if (a.provider !== b.provider || normalize(a.name) !== normalize(b.name))
     return false;
+  // EA catalog offer IDs and launcher content IDs are separate namespaces.
+  // A title match cannot supply the missing catalog-to-installation mapping.
+  if (
+    a.provider === "EA app" &&
+    Boolean(a.providerId) !== Boolean(b.providerId)
+  )
+    return false;
   if (
     a.provider === "EA app" &&
     a.eaLaunchId &&

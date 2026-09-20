@@ -67,3 +67,45 @@ test("EA shortcuts with the same title but different content IDs stay separate",
   });
   assert.equal(mergeGames([local("one"), local("two")]).length, 2);
 });
+
+test("EA account offers do not absorb same-title local games without an explicit offer mapping", () => {
+  const {
+    mergeAccountLibrary,
+  } = require("../electron/library/account-library.cjs");
+  const account = { id: "ea-account", provider: "EA app" };
+  const catalog = {
+    complete: true,
+    games: [
+      { productId: "Origin.offer", name: "Same title", access: "unknown" },
+    ],
+  };
+  const remote = mergeAccountLibrary([], account, catalog);
+  remote[0].notes = "Account notes";
+  remote[0].favorite = true;
+  for (const eaLaunchId of [undefined, "different-content", "Origin.offer"]) {
+    const local = {
+      id: "local",
+      provider: "EA app",
+      name: "Same title",
+      eaLaunchId,
+      sources: ["fixture.url"],
+      status: "installed",
+      launch: { kind: "file", target: "fixture.exe" },
+    };
+    const merged = mergeGames([local], remote);
+    assert.equal(
+      merged.length,
+      2,
+      "Name or equal text in different ID namespaces does not prove identity",
+    );
+    const retained = merged.find((game) => game.id === remote[0].id);
+    assert.equal(retained.notes, "Account notes");
+    assert.equal(retained.favorite, true);
+    assert.equal(retained.status, "uninstalled");
+    assert.equal(
+      merged.find((game) => game.id === "local").accountEntitlements.length,
+      0,
+    );
+    assert.equal(mergeAccountLibrary([local], account, catalog).length, 2);
+  }
+});

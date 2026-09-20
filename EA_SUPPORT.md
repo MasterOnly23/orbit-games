@@ -46,9 +46,9 @@ Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el ev
 
 `ea-uri.cjs` reconoce `origin2://game/launch/?offerIds=<contenido>` y los enlaces heredados `origin[2]://launchgame/<id>`, incluidos identificadores con puntos. El formato actual se contrastó con `ActionControllers/EaControllerHelper.cs` de la referencia fijada: usa `legacyOffer.contentId`, que no debe equipararse directamente a `originOfferId` del catálogo.
 
-Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita instalación: conserva estado sin verificar. Accesos del mismo título con distintos identificadores de contenido no se combinan por nombre. Para unir cuenta e instalación falta consultar y validar la correspondencia entre oferta y contenido. La biblioteca del lanzador usa ahora `origin2://library/open`, como la referencia; su apertura real en EA app sigue pendiente de prueba.
+Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita instalación: conserva estado sin verificar. Accesos del mismo título con distintos identificadores de contenido no se combinan por nombre. Para unir cuenta e instalación falta consultar y validar la correspondencia entre oferta y contenido. También se bloquea la combinación por título cuando solo uno de los registros dispone de identificador de oferta: se reprodujo una asociación incorrecta al importar primero la cuenta y luego detectar un juego local homónimo. Las notas, favoritos y derechos de cuenta permanecen en su registro. Pueden aparecer dos entradas hasta completar la correspondencia; no se reparan automáticamente asociaciones históricas. La biblioteca del lanzador usa ahora `origin2://library/open`, como la referencia; su apertura real en EA app sigue pendiente de prueba.
 
-Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlaces ambiguos y 114/114 pruebas de regresión aprobadas.
+Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlaces ambiguos y 115/115 pruebas de regresión aprobadas, incluida la reproducción del fallo antes de aplicar la corrección.
 
 ## Trabajo siguiente
 

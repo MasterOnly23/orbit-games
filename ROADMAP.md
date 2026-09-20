@@ -8,7 +8,7 @@ Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: reconocimiento de enlaces actuales y heredados de EA, identificador local separado de la oferta de cuenta y protección frente a accesos homónimos distintos. 114/114 pruebas aprobadas; correspondencia oferta/contenido y validación real pendientes.
+- Último incremento cerrado: corregida una asociación falsa entre oferta EA y juego local homónimo al importar primero la cuenta. Regresión reproducida y resuelta; 115/115 pruebas aprobadas. La unión correcta por correspondencia oferta/contenido sigue pendiente.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 20/09: bloqueo de combinación EA por título cuando falta correspondencia de oferta. Se preservan por separado estado local y derechos/notas de cuenta; la tarea de unión y resolución de duplicados sigue abierta.
 
 - 20/09: enlaces EA actuales e IDs con puntos admitidos; comando de apertura de biblioteca alineado con la referencia. Se conserva la diferencia entre contenido local y oferta remota, sin afirmar unión automática ni instalación por tener un acceso.
 
