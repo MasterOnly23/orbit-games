@@ -42,6 +42,14 @@ El recorrido navega desde login a inicio y ofertas, emite una solicitud del rend
 
 Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el evento `onBeforeSendHeaders`; por eso no sirve para comprobar este mecanismo. El servidor local sí ejercita la pila de red de Electron. Se amplió el recorrido al servicio de cuentas: importa un juego, rechaza catálogo truncado y cambio de identidad sin alterar los juegos, sincroniza, desconecta y recarga el almacén conservando notas y favoritos. Verifica también el botón Conectar EA app de Ajustes. Esto no prueba el login real, segundo factor ni expiración de sesión del proveedor.
 
+## Enlaces locales de EA
+
+`ea-uri.cjs` reconoce `origin2://game/launch/?offerIds=<contenido>` y los enlaces heredados `origin[2]://launchgame/<id>`, incluidos identificadores con puntos. El formato actual se contrastó con `ActionControllers/EaControllerHelper.cs` de la referencia fijada: usa `legacyOffer.contentId`, que no debe equipararse directamente a `originOfferId` del catálogo.
+
+Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita instalación: conserva estado sin verificar. Accesos del mismo título con distintos identificadores de contenido no se combinan por nombre. Para unir cuenta e instalación falta consultar y validar la correspondencia entre oferta y contenido. La biblioteca del lanzador usa ahora `origin2://library/open`, como la referencia; su apertura real en EA app sigue pendiente de prueba.
+
+Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlaces ambiguos y 114/114 pruebas de regresión aprobadas.
+
 ## Trabajo siguiente
 
 - Autenticar el transporte con una sesión real autorizada: el transporte HTTP ya está implementado y probado con respuestas sintéticas.

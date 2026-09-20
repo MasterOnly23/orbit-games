@@ -148,7 +148,7 @@ function registerIpc({
     const g = store.getGame(id);
     const uris = {
       Steam: `steam://nav/games/details/${g.steamId || ""}`,
-      "EA app": "origin2://library",
+      "EA app": "origin2://library/open",
       Xbox: "ms-xbox://",
       "Epic Games": "com.epicgames.launcher://library",
       Ubisoft: "uplay://",

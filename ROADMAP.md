@@ -8,7 +8,7 @@ Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: EA app habilitada como conexión experimental en código; QA con HTTPS local, juego importado, sincronización, cambio de cuenta rechazado, persistencia y desconexión. Falta validación real. Véase EA_SUPPORT.md.
+- Último incremento cerrado: reconocimiento de enlaces actuales y heredados de EA, identificador local separado de la oferta de cuenta y protección frente a accesos homónimos distintos. 114/114 pruebas aprobadas; correspondencia oferta/contenido y validación real pendientes.
 - Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 20/09: enlaces EA actuales e IDs con puntos admitidos; comando de apertura de biblioteca alineado con la referencia. Se conserva la diferencia entre contenido local y oferta remota, sin afirmar unión automática ni instalación por tener un acceso.
 
 - 20/09: EA registrada y visible en Ajustes; QA con catálogo no vacío y persistencia, conservación ante truncamiento/cambio de cuenta y desconexión sin pérdida de notas/favoritos. 111/111 pruebas y build aprobados. Plataforma sigue pendiente de validación real.
 

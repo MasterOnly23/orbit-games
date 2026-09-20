@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { sameBattleNetProduct } = require("./battlenet-identity.cjs");
+const { parseEaLaunchUri } = require("./ea-uri.cjs");
 const normalize = (value) =>
   String(value || "")
     .replace(/[™®©]/g, "")
@@ -51,8 +52,8 @@ function classifyUri(uri) {
     return { provider: "Epic Games" };
   if (/^uplay:\/\/launch\/\d+(?:\/\d+)?\/?$/i.test(uri))
     return { provider: "Ubisoft", providerId: uri.split("/")[3] };
-  if (/^(?:origin|origin2):\/\/launchgame\//i.test(uri))
-    return { provider: "EA app" };
+  const ea = parseEaLaunchUri(uri);
+  if (ea) return ea;
   if (/^battlenet:\/\//i.test(uri)) return { provider: "Battle.net" };
   return null;
 }
@@ -73,16 +74,19 @@ function validLaunchUri(uri) {
       return false;
     }
   }
-  if (data.provider === "EA app")
-    return /^(?:origin|origin2):\/\/launchgame\/[a-z0-9:_-]+(?:\?.*)?$/i.test(
-      uri,
-    );
   if (data.provider === "Battle.net")
     return /^battlenet:\/\/[a-z0-9\/_-]+$/i.test(uri);
   return true;
 }
 function sameProviderTitle(a, b) {
   if (a.provider !== b.provider || normalize(a.name) !== normalize(b.name))
+    return false;
+  if (
+    a.provider === "EA app" &&
+    a.eaLaunchId &&
+    b.eaLaunchId &&
+    a.eaLaunchId !== b.eaLaunchId
+  )
     return false;
   if (
     a.providerId &&
