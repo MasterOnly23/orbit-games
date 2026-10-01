@@ -1,6 +1,6 @@
 # EA app: integración en desarrollo
 
-Revisión: 20/09/2026. La conexión de cuenta está habilitada como experimental en el código posterior a alfa 5; no incluida en ese instalador. La detección local existente continúa disponible.
+Revisión: 01/10/2026. La conexión de cuenta está habilitada como experimental en el código posterior a alfa 5; no incluida en ese instalador. La detección local existente continúa disponible.
 
 ## Referencia actual
 
@@ -46,30 +46,37 @@ Resultado: aprobado. La sustitución previa del protocolo HTTPS no emitía el ev
 
 `ea-uri.cjs` reconoce `origin2://game/launch/?offerIds=<contenido>` y los enlaces heredados `origin[2]://launchgame/<id>`, incluidos identificadores con puntos. El formato actual se contrastó con `ActionControllers/EaControllerHelper.cs` de la referencia fijada: usa `legacyOffer.contentId`, que no debe equipararse directamente a `originOfferId` del catálogo.
 
-Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita instalación: conserva estado sin verificar. Accesos del mismo título con distintos identificadores de contenido no se combinan por nombre. Para unir cuenta e instalación falta consultar y validar la correspondencia entre oferta y contenido. También se bloquea la combinación por título cuando solo uno de los registros dispone de identificador de oferta: se reprodujo una asociación incorrecta al importar primero la cuenta y luego detectar un juego local homónimo. Las notas, favoritos y derechos de cuenta permanecen en su registro. Pueden aparecer dos entradas hasta completar la correspondencia; no se reparan automáticamente asociaciones históricas. La biblioteca del lanzador usa ahora `origin2://library/open`, como la referencia; su apertura real en EA app sigue pendiente de prueba.
+Los accesos guardan `eaLaunchId` separado de `providerId`. Un enlace no acredita instalación: conserva estado sin verificar. Accesos del mismo título con distintos identificadores de contenido no se combinan por nombre. La consulta de correspondencias conecta ahora el `contentId` del acceso con el `offerId` remoto solo cuando EA devuelve una correspondencia completa y única. La importación cuenta-primero y el escaneo local-primero conservan el ID del registro y sus datos personales, artwork y evidencia de lanzamiento. Si falta el mapa o es ambiguo, los registros permanecen separados; la sincronización EA elimina del registro remoto el mapa anterior del producto cuando la respuesta actual no contiene uno. También se bloquea la combinación por título cuando solo uno de los registros dispone de identificador de oferta: se reprodujo una asociación incorrecta al importar primero la cuenta y luego detectar un juego local homónimo. No se reparan automáticamente asociaciones históricas. La biblioteca del lanzador usa ahora `origin2://library/open`, como la referencia; su apertura real en EA app sigue pendiente de prueba.
 
 Evidencia: `ea-uri.test.cjs`, detección de acceso controlado, rechazo de enlaces ambiguos y 115/115 pruebas de regresión aprobadas, incluida la reproducción del fallo antes de aplicar la corrección.
 
-## Lector de correspondencias preparado
+## Lector de correspondencias
 
 `ea-offers.cjs` interpreta `data.legacyOffers` de la consulta `getLegacyCatalogDefs` documentada en el código de referencia. Guarda exclusivamente `offerId` y `contentId`; descarta rutas, parámetros, directivas de registro y otros campos. Exige que cada lote devuelva exactamente sus ofertas solicitadas, sin errores GraphQL ni duplicados.
 
 El coordinador procesa hasta 10.000 ofertas, en lotes de 100 y con cancelación. Si dos ofertas comparten contenido, esa correspondencia queda excluida aunque la colisión aparezca en otro lote. Un contenido nulo no se sustituye por el identificador de oferta. Un lote incompleto impide devolver un mapa parcial.
 
-Pruebas en `ea-offers.test.cjs`: selección de campos, lotes incompletos, contenido ausente, ambigüedad entre lotes y cancelación; suite completa 118/118. El lector está conectado al transporte HTTP mediante `fetchEaOfferMapping`; todavía falta usar el resultado en la combinación de registros. No modifica bibliotecas existentes.
+Pruebas en `ea-offers.test.cjs`: selección de campos, lotes incompletos, contenido ausente, ambigüedad entre lotes y cancelación. El lector está conectado al transporte HTTP mediante `fetchEaOfferMapping` y su resultado alimenta la combinación de registros. No modifica bibliotecas si un lote falla o la operación se cancela.
 
 ## Transporte de correspondencias
 
-`fetchEaOfferMapping` envía `getLegacyCatalogDefs` por POST al host fijo de EA. La consulta selecciona solo `offerId: id` y `contentId`. Sigue el flujo sin bearer de la referencia, con cookies omitidas; reutiliza el lector HTTP acotado a 8 MiB/20 segundos, rechazo de redirecciones, cancelación y errores neutralizados.
+`fetchEaOfferMapping` envía `getLegacyCatalogDefs` por POST al host fijo de EA. La consulta selecciona solo `offerId: id` y `contentId`. Sigue el flujo sin bearer de la referencia, con cookies omitidas; reutiliza el lector HTTP acotado a 8 MiB/20 segundos, rechazo de redirecciones, cancelación y errores neutralizados. En el adaptador, los juegos del catálogo reciben `eaContentId` solo para ofertas incluidas en el resultado validado.
 
-Prueba controlada con 101 ofertas verifica dos lotes, contrato POST, ausencia de autorización y rechazo de lote incompleto. Suite completa: 119/119. No se consultó el servicio real de EA ni se aplicaron aún correspondencias a la biblioteca.
+Prueba controlada con 101 ofertas verifica dos lotes, contrato POST, ausencia de autorización y rechazo de lote incompleto. No se consultó el servicio real de EA.
+
+## Unión de registros
+
+`ea-identity.cjs` usa solo pares únicos `offerId`/`contentId`. Permite unir la entrada local y la de cuenta tanto si se importa primero la cuenta como si se detecta primero el acceso local; el nombre localizado no participa en la identidad. Los cambios conservan el ID existente, notas, favoritos, etiquetas, personalización, artwork, estado local y datos de lanzamiento. Los accesos de cuenta mantienen ownership `unknown` hasta que exista evidencia que lo confirme; los enlaces locales mantienen instalación `unknown`.
+
+Una correspondencia nula, ausente o ambigua no crea una unión nueva. Un mapa ausente en la actualización actual se elimina del registro remoto para el producto sincronizado, por lo que esa respuesta no puede aportar una asociación posterior. Los registros manuales y duplicados históricos no se fusionan automáticamente. Una sincronización de otra plataforma no modifica identidades EA separadas.
+
+Evidencia al 01/10/2026: `npm test`, 124/124 pruebas; `node scripts/qa-ea-session.cjs`, aprobado con `success:true`, `controlledElectronTraffic:true`, `persistedAccountLifecycle:true`, `settingsConnectButton:true`, `complete:true`, `count:1` y `containsBearer:false`. La QA usa un servicio HTTPS en loopback y tráfico sintético; no valida autenticación, mapa, ownership, instalación ni lanzamiento contra EA real. ACC-08 sigue abierto.
 
 ## Trabajo siguiente
 
-- Autenticar el transporte con una sesión real autorizada: el transporte HTTP ya está implementado y probado con respuestas sintéticas.
-- Autenticación en una sesión exclusiva de Orbit; expiración, renovación, segundo factor y cambio de cuenta.
-- Comprobar la consulta vigente con una cuenta autorizada, incluyendo cuenta vacía, ediciones, pruebas, suscripciones y títulos asociados a otras tiendas.
-- Verificar unión por oferta con instalaciones locales y acciones de EA app; no suponer que el nombre basta.
-- Validar UI, desconexión y diagnóstico con cuenta real; revisar requisitos de distribución. La integración de UI y desconexión ya pasó la prueba controlada, y el registro de diagnóstico incluye los proveedores habilitados.
+- Validar el inicio de sesión real en una sesión exclusiva de Orbit, incluidos vencimiento, renovación, segundo factor y cambio de cuenta.
+- Confirmar la consulta actual con una cuenta autorizada: biblioteca vacía, ediciones, pruebas, suscripciones y títulos asociados a otras tiendas.
+- Validar la correspondencia y los accesos locales con una cuenta autorizada; probar el lanzamiento y apertura de biblioteca en EA app.
+- Revisar la UI, desconexión, diagnóstico y requisitos de distribución con una cuenta real y una compilación candidata. La QA sintética no cubre esos casos.
 
 No se necesita decidir un servidor propio para el lector implementado. La viabilidad integral sigue pendiente de autenticación y verificación real.

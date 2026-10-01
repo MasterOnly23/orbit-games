@@ -3,7 +3,7 @@
 Full backlog and acceptance gates remain in `ROADMAP.md` (59 tasks). This board contains executable near-term tasks; expand remaining phases as dependencies resolve, without dropping product requirements.
 
 ## TASK-001 — Finish EA identity increment
-Status: active
+Status: done
 Priority: high
 Worker: Luna Max
 Dependencies: none
@@ -11,6 +11,8 @@ Scope: Review existing uncommitted EA offer/content integration, fix focused iss
 Relevant modules: ea.cjs, ea-identity.cjs, account-library.cjs, model.cjs, EA tests/fixture, EA_SUPPORT.md, ROADMAP.md.
 Acceptance criteria: both import orders preserve personal data; absent/ambiguous/withdrawn maps cannot create new false joins; repeated operations stable; current evidence and source/package boundaries documented.
 Verification: npm test; node scripts/qa-ea-session.cjs; diff review. Details in tasks/TASK-001.md.
+
+Result (2026-10-01): Luna review fixed unrelated-provider EA enrichment and added its regression. 124/124 tests and loopback Electron QA passed; orchestrator reviewed merge changes, tests and evidence. Root documentation updated; ACC-08 remains open. No real sessions or stable installation touched.
 
 ## TASK-002 — Specify next platform integration
 Status: pending

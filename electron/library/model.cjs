@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const path = require("node:path");
 const { sameBattleNetProduct } = require("./battlenet-identity.cjs");
 const { parseEaLaunchUri } = require("./ea-uri.cjs");
+const { withEaOfferIdentity, sameEaProduct } = require("./ea-identity.cjs");
 const normalize = (value) =>
   String(value || "")
     .replace(/[™®©]/g, "")
@@ -106,6 +107,7 @@ function sameProviderTitle(a, b) {
   return true;
 }
 function mergeGames(detected, previous = []) {
+  detected = withEaOfferIdentity(detected, [...previous, ...detected]);
   const result = [];
   for (const candidate of detected) {
     // Same provider/title or exact launch identity only: keep editions and different stores separate.
@@ -113,6 +115,7 @@ function mergeGames(detected, previous = []) {
       (g) =>
         g.id === candidate.id ||
         sameBattleNetProduct(g, candidate) ||
+        sameEaProduct(g, candidate) ||
         sameProviderTitle(g, candidate),
     );
     if (existing) {
@@ -136,6 +139,7 @@ function mergeGames(detected, previous = []) {
         (g) =>
           g.id === candidate.id ||
           sameBattleNetProduct(g, candidate) ||
+          sameEaProduct(g, candidate) ||
           sameProviderTitle(g, candidate) ||
           g.sources?.some((p) => candidate.sources.includes(p)),
       );

@@ -59,6 +59,29 @@ const { execFileSync } = require("node:child_process");
         return;
       }
       if (url.pathname === "/graphql") {
+        if (request.method === "POST") {
+          assert.equal(request.headers.authorization, undefined);
+          let body = "";
+          request.on("data", (chunk) => {
+            body += chunk;
+          });
+          request.on("end", () => {
+            const query = JSON.parse(body);
+            assert.equal(query.operationName, "getLegacyCatalogDefs");
+            assert.deepEqual(query.variables.offerIds, ["Origin.fixture"]);
+            response.setHeader("Content-Type", "application/json");
+            response.end(
+              JSON.stringify({
+                data: {
+                  legacyOffers: [
+                    { offerId: "Origin.fixture", contentId: "content-fixture" },
+                  ],
+                },
+              }),
+            );
+          });
+          return;
+        }
         if (request.headers.authorization !== "Bearer SYNTHETIC_ONLY") {
           response.writeHead(401);
           response.end();
@@ -173,6 +196,23 @@ const { execFileSync } = require("node:child_process");
       const { ea } = requireMain("accounts/ea.cjs");
       const store = new LibraryStore(process.env.ORBIT_DATA_DIR + "/service");
       await store.load();
+      store.data.games = [
+        {
+          id: "local-fixture",
+          provider: "EA app",
+          name: "Título local EA",
+          eaLaunchId: "content-fixture",
+          sources: ["fixture.url"],
+          status: "unknown",
+          launch: {
+            kind: "uri",
+            target: "origin2://game/launch/?offerIds=content-fixture",
+          },
+          notes: "Keep QA note",
+          favorite: true,
+        },
+      ];
+      await store.save();
       const service = createAccountService({
         store,
         save: () => store.save(),
@@ -190,8 +230,12 @@ const { execFileSync } = require("node:child_process");
     assert.equal(connected.count, 1);
     await app.evaluate(async () => {
       const { store } = globalThis.eaFixture;
-      store.data.games[0].notes = "Keep QA note";
-      store.data.games[0].favorite = true;
+      if (
+        store.data.games.length !== 1 ||
+        store.data.games[0].id !== "local-fixture" ||
+        store.data.games[0].providerId !== "Origin.fixture"
+      )
+        throw new Error("Local EA identity did not merge");
       await store.save();
       globalThis.eaFixture.before = JSON.stringify(store.data.games);
     });
@@ -227,6 +271,8 @@ const { execFileSync } = require("node:child_process");
         disconnect,
         accounts: reloaded.data.accounts.length,
         games: reloaded.data.games.length,
+        id: reloaded.data.games[0].id,
+        status: reloaded.data.games[0].status,
         notes: reloaded.data.games[0].notes,
         favorite: reloaded.data.games[0].favorite,
         state: reloaded.data.games[0].accountEntitlements[0].state,
@@ -239,6 +285,8 @@ const { execFileSync } = require("node:child_process");
     assert.equal(persisted.disconnect.ok, true);
     assert.equal(persisted.accounts, 0);
     assert.equal(persisted.games, 1);
+    assert.equal(persisted.id, "local-fixture");
+    assert.equal(persisted.status, "unknown");
     assert.equal(persisted.notes, "Keep QA note");
     assert.equal(persisted.favorite, true);
     assert.equal(persisted.state, "disconnected");

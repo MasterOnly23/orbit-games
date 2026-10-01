@@ -1,6 +1,6 @@
 # Orbit Next — Roadmap de seguimiento
 
-Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboarding`, separado de Orbit estable.
+Actualizado: **1 de octubre de 2026**. Trabajo en `feature/orbit-next-onboarding`, separado de Orbit estable.
 
 ## Dónde estamos
 
@@ -8,8 +8,8 @@ Actualizado: **20 de septiembre de 2026**. Trabajo en `feature/orbit-next-onboar
 
 **Avance de esta lista: 22 de 59 tareas cerradas; 37 pendientes.** Es un recuento de tareas, no un porcentaje de esfuerzo ni una fecha estimada. Las pruebas reales de plataformas y distribución concentran incertidumbre; no sería fiable calcular una fecha de lanzamiento con los datos actuales.
 
-- Último incremento cerrado: consulta HTTP de correspondencias EA conectada al lector validado, con lotes, límites y sin autorización de cuenta. 119/119 pruebas aprobadas; aplicación del mapa a juegos locales/remotos pendiente.
-- Siguiente trabajo: continuar clásicos/identidad de Battle.net e integraciones EA, Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
+- Incremento EA implementado: mapa validado de oferta/contenido conectado a la unión local/cuenta en ambos órdenes; 124/124 pruebas y QA Electron con HTTPS loopback aprobadas. Esto no cierra ACC-08 ni valida EA real.
+- Siguiente trabajo: validar EA con cuenta autorizada, continuar clásicos/identidad de Battle.net e integraciones Xbox y Amazon; mantener validación externa de Windows y cuentas como requisito de lanzamiento.
 - En paralelo al desarrollo: obtener evidencia con cuentas reales y un entorno Windows 10 x64.
 - Paquete actual: [alfa 5 y sus pruebas](RELEASE_ALPHA5.md). Requisitos completos e historial: [PRODUCT_PLAN.md](PRODUCT_PLAN.md).
 
@@ -126,6 +126,8 @@ Para pruebas reales, el usuario inicia sesión en la ventana del proveedor; no e
 No hay servidor propio incorporado. Si una función lo exige, explicar el motivo antes de incluirlo. La monetización se decidirá después de completar el producto; no se añade venta/activación como requisito de esta etapa.
 
 ## Últimos avances
+
+- 01/10: correspondencias EA conectadas a la identidad de biblioteca. Unión local/cuenta en ambos órdenes solo con mapa único, preservando ID, datos personales, artwork y evidencia de lanzamiento. Se mantienen separadas las correspondencias ausentes/ambiguas; sincronización ajena a EA no altera estas identidades. `npm test`: 124/124; `node scripts/qa-ea-session.cjs`: aprobado en loopback sintético, sin bearer en el resultado. ACC-08 y validación real siguen pendientes.
 
 - 20/09: POST getLegacyCatalogDefs pide exclusivamente oferta y contenido y comparte transporte acotado con el catálogo. QA de lotes y fallos completa; todavía no une registros ni modifica bibliotecas.
 

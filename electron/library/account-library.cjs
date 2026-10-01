@@ -1,4 +1,5 @@
 const { idFor } = require("./model.cjs");
+const { withEaOfferIdentity } = require("./ea-identity.cjs");
 
 // Remote access is independent of local installation evidence and user edits.
 function mergeAccountLibrary(
@@ -31,7 +32,25 @@ function mergeAccountLibrary(
       );
     products.add(game.productId);
   }
-  const result = previous.map((game) => ({
+  const mapped =
+    account.provider === "EA app"
+      ? withEaOfferIdentity(previous, [
+          // A fresh snapshot replaces mappings for its offers, including removals.
+          ...previous.filter(
+            (game) =>
+              !(
+                game.provider === account.provider &&
+                products.has(game.providerId)
+              ),
+          ),
+          ...snapshot.games.map((game) => ({
+            provider: account.provider,
+            providerId: game.productId,
+            eaContentId: game.eaContentId,
+          })),
+        ])
+      : previous;
+  const result = mapped.map((game) => ({
     ...game,
     accountEntitlements: (game.accountEntitlements || []).map((access) =>
       access.accountId === account.id
@@ -81,6 +100,11 @@ function mergeAccountLibrary(
       state: "available",
       checkedAt: at,
     };
+    if (account.provider === "EA app") {
+      if (typeof item.eaContentId === "string")
+        game.eaContentId = item.eaContentId;
+      else delete game.eaContentId;
+    }
     if (typeof item.accessNote === "string")
       game.accountAccessNote = item.accessNote.slice(0, 200);
     game.accountEntitlements = [

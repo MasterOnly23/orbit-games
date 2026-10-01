@@ -1,5 +1,5 @@
 const { observeEaAuthorization } = require("./ea-authorization.cjs");
-const { fetchEaCatalog } = require("./ea-transport.cjs");
+const { fetchEaCatalog, fetchEaOfferMapping } = require("./ea-transport.cjs");
 const { ProviderError } = require("./provider-error.cjs");
 
 const dealsUrl = "https://www.ea.com/sales/deals";
@@ -43,6 +43,20 @@ const ea = {
           token,
           signal,
         });
+        const mapping = await fetchEaOfferMapping({
+          offerIds: catalog.games.map((game) => game.productId),
+          fetchImpl: isolated.fetch.bind(isolated),
+          signal,
+        });
+        const byOffer = new Map(
+          mapping.map(({ offerId, contentId }) => [offerId, contentId]),
+        );
+        catalog.games = catalog.games.map((game) => ({
+          ...game,
+          ...(byOffer.has(game.productId)
+            ? { eaContentId: byOffer.get(game.productId) }
+            : {}),
+        }));
         // The bearer remains local to this request; only validated catalog data
         // crosses back to the account service, which persists its allowlist.
         return {
